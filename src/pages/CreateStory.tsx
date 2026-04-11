@@ -2,10 +2,11 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { BookOpen, Send, ArrowLeft, Sparkles, Shuffle } from "lucide-react";
+import { BookOpen, Send, ArrowLeft, Sparkles, Shuffle, Upload, X, UserCircle } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { streamIntakeChat, parseStoryContext, stripStoryContextTag } from "@/lib/streamChat";
+import { supabase } from "@/integrations/supabase/client";
 
 type Message = {
   role: "user" | "assistant";
@@ -25,8 +26,12 @@ const CreateStory = () => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [storyContext, setStoryContext] = useState<any>(null);
+  const [characterImage, setCharacterImage] = useState<File | null>(null);
+  const [characterPreview, setCharacterPreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     // Scroll to bottom on new messages
@@ -138,14 +143,57 @@ const CreateStory = () => {
     });
   };
 
-  const handleContinue = () => {
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "Invalid file", description: "Please upload an image file.", variant: "destructive" });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "File too large", description: "Max 5MB.", variant: "destructive" });
+      return;
+    }
+    setCharacterImage(file);
+    setCharacterPreview(URL.createObjectURL(file));
+  };
+
+  const removeImage = () => {
+    setCharacterImage(null);
+    if (characterPreview) URL.revokeObjectURL(characterPreview);
+    setCharacterPreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const uploadCharacterImage = async (): Promise<string | null> => {
+    if (!characterImage) return null;
+    setIsUploading(true);
+    try {
+      const ext = characterImage.name.split(".").pop() || "jpg";
+      const filePath = `character-refs/${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("story-assets")
+        .upload(filePath, characterImage, { contentType: characterImage.type, upsert: true });
+      if (uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage.from("story-assets").getPublicUrl(filePath);
+      return urlData.publicUrl;
+    } catch (e: any) {
+      toast({ title: "Upload failed", description: "Generating without character photo.", variant: "destructive" });
+      return null;
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleContinue = async () => {
     if (storyContext) {
+      const characterImageUrl = await uploadCharacterImage();
       const chatHistory = messages.map((m) => ({
         role: m.role,
         content: m.content,
       }));
       navigate("/story-preview", {
-        state: { context: storyContext, chatHistory },
+        state: { context: storyContext, chatHistory, characterImageUrl },
       });
     }
   };
@@ -201,13 +249,41 @@ const CreateStory = () => {
       <div className="border-t border-border p-4">
         <div className="max-w-2xl mx-auto">
           {storyContext ? (
-            <Button
-              onClick={handleContinue}
-              className="w-full bg-accent text-accent-foreground hover:bg-accent/90 gap-2 text-base py-6"
-            >
-              <Sparkles className="h-5 w-5" />
-              Preview & Generate Story
-            </Button>
+            <div className="space-y-4">
+              {/* Character image upload */}
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 border border-border">
+                <UserCircle className="h-5 w-5 text-accent shrink-0" />
+                {characterPreview ? (
+                  <div className="relative">
+                    <img src={characterPreview} alt="Character" className="w-16 h-16 rounded-xl object-cover border border-accent/40" />
+                    <button onClick={removeImage} className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full p-0.5">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-16 h-16 rounded-xl border-2 border-dashed border-accent/40 flex flex-col items-center justify-center gap-1 hover:border-accent hover:bg-accent/5 transition-colors shrink-0"
+                  >
+                    <Upload className="h-4 w-4 text-accent/60" />
+                    <span className="text-[10px] text-muted-foreground">Photo</span>
+                  </button>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-foreground">Upload character photo</p>
+                  <p className="text-xs text-muted-foreground">Optional — adds your child's likeness to illustrations</p>
+                </div>
+                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
+              </div>
+              <Button
+                onClick={handleContinue}
+                disabled={isUploading}
+                className="w-full bg-accent text-accent-foreground hover:bg-accent/90 gap-2 text-base py-6"
+              >
+                <Sparkles className="h-5 w-5" />
+                {isUploading ? "Uploading..." : "Preview & Generate Story"}
+              </Button>
+            </div>
           ) : (
             <div className="space-y-2">
               <div className="flex gap-2">

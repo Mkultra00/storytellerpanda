@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import TavusNarrator from "@/components/TavusNarrator";
 import {
   Play,
   Pause,
@@ -10,6 +9,7 @@ import {
   SkipBack,
   Volume2,
   VolumeX,
+  Video,
   X,
   Gauge,
   ChevronLeft,
@@ -270,13 +270,6 @@ const StoryPlayback = () => {
       className="fixed inset-0 bg-black flex flex-col cursor-pointer select-none"
       onClick={resetControlsTimer}
     >
-      {/* Tavus narrator PiP */}
-      <TavusNarrator
-        storyTitle={title || "Story"}
-        storySynopsis={synopsis}
-        childName={child_name}
-        voiceId={voice_id}
-      />
 
       {/* Scene Image with crossfade */}
       <div className="absolute inset-0">
@@ -501,7 +494,7 @@ const StoryPlayback = () => {
           <div className="text-center space-y-6">
             <h2 className="text-white text-3xl font-heading font-bold">The End ✨</h2>
             <p className="text-white/60 font-body">What a wonderful adventure!</p>
-            <div className="flex gap-3 justify-center">
+            <div className="flex gap-3 justify-center flex-wrap">
               <Button
                 variant="outline"
                 onClick={() => { playScene(0); }}
@@ -510,8 +503,23 @@ const StoryPlayback = () => {
                 <Play className="h-4 w-4" /> Replay
               </Button>
               <Button
+                onClick={() => navigate("/talk-to-xiaobi", {
+                  state: {
+                    title,
+                    synopsis,
+                    childName: child_name,
+                    voiceId: voice_id,
+                    scenes: scenes,
+                  },
+                })}
+                className="bg-accent text-accent-foreground hover:bg-accent/90 gap-2"
+              >
+                <Video className="h-4 w-4" /> Talk to Xiaobi
+              </Button>
+              <Button
+                variant="outline"
                 onClick={handleClose}
-                className="bg-accent text-accent-foreground hover:bg-accent/90"
+                className="border-white/30 text-white hover:bg-white/10"
               >
                 Done
               </Button>
