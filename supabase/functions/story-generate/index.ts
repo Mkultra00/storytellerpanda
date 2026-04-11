@@ -147,16 +147,24 @@ voice_style must be one of: warm_female, warm_male, playful_female, playful_male
 
     const aiResult = await response.json();
     
-    // Parse the content - try tool_calls first, then content
+    // Parse the content with control-character sanitization
+    function safeJsonParse(raw: string): any {
+      let cleaned = raw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
+      const start = cleaned.search(/[\{\[]/);
+      const end = cleaned.lastIndexOf(start !== -1 && cleaned[start] === '[' ? ']' : '}');
+      if (start !== -1 && end !== -1) cleaned = cleaned.substring(start, end + 1);
+      try { return JSON.parse(cleaned); } catch {
+        cleaned = cleaned.replace(/[\x00-\x1F\x7F]/g, (ch) => ch === '\n' || ch === '\r' || ch === '\t' ? ' ' : '');
+        return JSON.parse(cleaned);
+      }
+    }
+
     let story: any;
     const toolCall = aiResult.choices?.[0]?.message?.tool_calls?.[0];
     if (toolCall?.function?.arguments) {
-      story = JSON.parse(toolCall.function.arguments);
+      story = safeJsonParse(toolCall.function.arguments);
     } else {
-      const content = aiResult.choices?.[0]?.message?.content || "";
-      // Strip markdown fences if present
-      const cleaned = content.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
-      story = JSON.parse(cleaned);
+      story = safeJsonParse(aiResult.choices?.[0]?.message?.content || "");
     }
 
     console.log("Parsed story:", JSON.stringify({ title: story.title, sceneCount: story.scenes?.length }));
