@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { BookOpen, Home, Library, Sparkles, Play, Pause, Volume2, Image, Music, Wand2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import TavusNarrator from "@/components/TavusNarrator";
 
 const RENDER_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/render-story`;
 
