@@ -28,6 +28,7 @@ const StoryResult = () => {
   const [renderedScenes, setRenderedScenes] = useState<SceneRenderResult[]>([]);
   const [playingScene, setPlayingScene] = useState<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const hasStartedRender = useRef(false);
 
   if (!story) {
     return (
