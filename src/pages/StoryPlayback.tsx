@@ -444,9 +444,11 @@ const StoryPlayback = () => {
               size="icon"
               onClick={(e) => { e.stopPropagation(); handleSkipBack(); }}
               className="text-white/80 hover:text-white hover:bg-white/10 h-10 w-10"
+              disabled={currentScene === 0}
             >
               <SkipBack className="h-5 w-5" />
             </Button>
+            {!isSlideshow && (
             <Button
               variant="ghost"
               size="icon"
@@ -459,11 +461,13 @@ const StoryPlayback = () => {
                 <Play className="h-7 w-7 ml-0.5" />
               )}
             </Button>
+            )}
             <Button
               variant="ghost"
               size="icon"
               onClick={(e) => { e.stopPropagation(); handleSkipForward(); }}
               className="text-white/80 hover:text-white hover:bg-white/10 h-10 w-10"
+              disabled={currentScene === scenes.length - 1}
             >
               <SkipForward className="h-5 w-5" />
             </Button>
