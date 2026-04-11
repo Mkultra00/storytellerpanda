@@ -1,8 +1,8 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Sparkles, BookOpen, Clock, Wand2, Upload, X, UserCircle } from "lucide-react";
+import { ArrowLeft, Sparkles, BookOpen, Clock, Wand2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -14,14 +14,12 @@ const StoryPreview = () => {
   const { toast } = useToast();
   const context = location.state?.context;
   const chatHistory = location.state?.chatHistory;
+  const characterImageUrl = location.state?.characterImageUrl || null;
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
   const [statusText, setStatusText] = useState("");
-  const [characterImage, setCharacterImage] = useState<File | null>(null);
-  const [characterPreview, setCharacterPreview] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  
 
   if (!context) {
     return (
