@@ -64,12 +64,12 @@ const TavusNarrator = ({ storyTitle, storySynopsis, childName, voiceId }: TavusN
         }),
       });
 
-      if (!resp.ok) {
-        const err = await resp.json().catch(() => ({}));
-        throw new Error(err.error || "Failed to start narrator");
+      const data = await resp.json().catch(() => ({}));
+
+      if (!resp.ok || !data?.conversation_url) {
+        throw new Error(data?.error || "Failed to start narrator");
       }
 
-      const data = await resp.json();
       setConversationUrl(data.conversation_url);
       setIsVisible(true);
     } catch (e: any) {

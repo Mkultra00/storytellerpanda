@@ -249,6 +249,7 @@ Return this JSON structure:
         script_id: scriptData.id,
         title: story.title,
         synopsis: story.synopsis,
+        voice_id: voiceId,
         scene_count: story.scenes.length,
         scenes: story.scenes,
       }),
