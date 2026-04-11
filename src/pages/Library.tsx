@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { BookOpen, ArrowLeft, Heart, Play, Trash2 } from "lucide-react";
+import { BookOpen, ArrowLeft, Heart, Play, Trash2, SlidersHorizontal, BookText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+
+type PlayMode = "narration" | "slideshow";
 
 const Library = () => {
   const navigate = useNavigate();
@@ -11,6 +13,14 @@ const Library = () => {
   const [stories, setStories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [playModes, setPlayModes] = useState<Record<string, PlayMode>>({});
+
+  const togglePlayMode = (id: string) => {
+    setPlayModes((prev) => ({
+      ...prev,
+      [id]: prev[id] === "slideshow" ? "narration" : "slideshow",
+    }));
+  };
 
   const loadStories = async () => {
     const { data } = await supabase
@@ -41,6 +51,7 @@ const Library = () => {
   }, []);
 
   const playStory = (item: any) => {
+    const mode = playModes[item.id] || "narration";
     const playbackScenes = item.scenes.map((s: any) => ({
       scene_number: s.scene_number,
       narration_text: s.narration_text,
@@ -54,7 +65,8 @@ const Library = () => {
         scenes: playbackScenes,
         synopsis: item.story_scripts?.synopsis,
         voice_id: item.story_scripts?.voice_id,
-        autoPlay: true,
+        autoPlay: mode === "narration",
+        playMode: mode,
       },
     });
   };
@@ -62,7 +74,6 @@ const Library = () => {
   const deleteStory = async (item: any) => {
     setDeleting(item.id);
     try {
-      // Delete from library
       await supabase.from("story_library").delete().eq("id", item.id);
       setStories((prev) => prev.filter((s) => s.id !== item.id));
       toast({ title: "Story deleted", description: `"${item.story_scripts?.title}" removed from your library.` });
@@ -103,6 +114,7 @@ const Library = () => {
             {stories.map((item) => {
               const hasMedia = item.scenes.some((s: any) => s.audio_url || s.image_url);
               const coverImage = item.scenes.find((s: any) => s.image_url)?.image_url;
+              const mode = playModes[item.id] || "narration";
               return (
                 <div
                   key={item.id}
@@ -120,14 +132,35 @@ const Library = () => {
                     <p className="text-sm text-muted-foreground font-body mt-1">
                       {item.story_scripts?.synopsis || ""}
                     </p>
-                    <div className="flex items-center gap-3 mt-4">
+
+                    {/* Play mode toggle */}
+                    <button
+                      onClick={() => togglePlayMode(item.id)}
+                      className="mt-3 flex items-center gap-2 text-xs font-body rounded-full border border-border px-3 py-1.5 hover:bg-muted transition-colors"
+                    >
+                      {mode === "narration" ? (
+                        <>
+                          <Play className="h-3 w-3 text-accent" />
+                          <span className="text-muted-foreground">Narration</span>
+                        </>
+                      ) : (
+                        <>
+                          <BookText className="h-3 w-3 text-accent" />
+                          <span className="text-muted-foreground">Slideshow</span>
+                        </>
+                      )}
+                      <span className="text-muted-foreground/50 ml-1">tap to switch</span>
+                    </button>
+
+                    <div className="flex items-center gap-3 mt-3">
                       <Button
                         size="sm"
                         className="bg-accent text-accent-foreground hover:bg-accent/90"
                         onClick={() => playStory(item)}
-                        disabled={!hasMedia}
+                        disabled={!hasMedia && mode === "narration"}
                       >
-                        <Play className="h-3 w-3 mr-1" /> {hasMedia ? "Play" : "Not rendered"}
+                        <Play className="h-3 w-3 mr-1" />
+                        {mode === "slideshow" ? "View" : hasMedia ? "Play" : "Not rendered"}
                       </Button>
                       <Button size="sm" variant="ghost">
                         <Heart className={`h-4 w-4 ${item.is_favorite ? "fill-destructive text-destructive" : ""}`} />
