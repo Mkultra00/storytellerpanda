@@ -15,7 +15,7 @@ type Message = {
 const INITIAL_MESSAGE: Message = {
   role: "assistant",
   content:
-    "Hi there! 🌟 I'm StoryWeaver, your magical storytelling companion. Let's create a wonderful story together!\n\nTo get started, tell me:\n• What's your child's **name**?\n• How **old** are they?\n• What's their **gender**?\n• And what's the **occasion** — is this a bedtime story, a birthday surprise, a confidence booster, or something else? 😊",
+    "Hi there! 🌟 I'm Xiaobi, your storytelling panda! Let's create a wonderful story together!\n\nTo get started, tell me:\n• What's your child's **name**?\n• How **old** are they?\n• What's their **gender**?\n• And what's the **occasion** — is this a bedtime story, a birthday surprise, a confidence booster, or something else? 😊",
 };
 
 const CreateStory = () => {
@@ -125,7 +125,7 @@ const CreateStory = () => {
         </Button>
         <BookOpen className="h-6 w-6 text-accent" />
         <h1 className="text-xl font-heading font-bold text-foreground">
-          Create a Story
+          Xiaobi — Create a Story
         </h1>
       </header>
 
