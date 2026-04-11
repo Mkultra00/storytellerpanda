@@ -169,6 +169,7 @@ const StoryResult = () => {
         storyTitle={story.title}
         storySynopsis={story.synopsis}
         childName={story.scenes?.[0]?.narration_text?.match(/\b[A-Z][a-z]+\b/)?.[0]}
+        voiceId={story.voice_id}
       />
       <header className="flex items-center gap-3 px-6 py-4 border-b border-border">
         <Sparkles className="h-6 w-6 text-accent" />

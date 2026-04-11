@@ -60,6 +60,7 @@ const TavusNarrator = ({ storyTitle, storySynopsis, childName, voiceId }: TavusN
           story_title: storyTitle,
           story_synopsis: storySynopsis,
           child_name: childName,
+          voice_id: voiceId,
         }),
       });
 
