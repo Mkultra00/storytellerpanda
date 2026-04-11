@@ -110,9 +110,27 @@ const StoryPlayback = () => {
     }
   }, [currentScene, scenes]);
 
+  const goToScene = useCallback((idx: number) => {
+    if (idx < 0 || idx >= scenes.length) return;
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    setCurrentScene(idx);
+    setAudioProgress(0);
+    setAudioDuration(0);
+  }, [scenes.length]);
+
   const playScene = useCallback(
     (idx: number) => {
       if (idx < 0 || idx >= scenes.length) return;
+
+      // In slideshow mode, just navigate — no audio
+      if (isSlideshow) {
+        goToScene(idx);
+        setPlaybackState("playing");
+        return;
+      }
 
       // Stop current audio
       if (audioRef.current) {
@@ -136,7 +154,6 @@ const StoryPlayback = () => {
         };
 
         audio.onended = () => {
-          // Auto-advance to next scene
           if (idx + 1 < scenes.length) {
             playScene(idx + 1);
           } else {
@@ -147,7 +164,6 @@ const StoryPlayback = () => {
         audio.play().catch(console.error);
         setPlaybackState("playing");
       } else {
-        // No audio — auto-advance after estimated duration
         setPlaybackState("playing");
         const dur = (s.duration_seconds || 8) * 1000;
         const t = setTimeout(() => {
@@ -160,7 +176,7 @@ const StoryPlayback = () => {
         return () => clearTimeout(t);
       }
     },
-    [scenes, muted, volume, speed]
+    [scenes, muted, volume, speed, isSlideshow, goToScene]
   );
 
   // Auto-play on mount if requested
