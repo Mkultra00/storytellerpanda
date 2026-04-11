@@ -52,7 +52,7 @@ You are excited to present this story. Be warm, enthusiastic, and speak as if ta
       default_replica_id: replicaId,
       layers: {
         llm: {
-          model: "tavus-gemini-2.5-flash",
+          model: "tavus-llama-3.3-70b",
         },
       },
     }),
