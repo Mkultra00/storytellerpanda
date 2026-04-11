@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { BookOpen, Send, ArrowLeft, Sparkles } from "lucide-react";
+import { BookOpen, Send, ArrowLeft, Sparkles, Shuffle } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { streamIntakeChat, parseStoryContext, stripStoryContextTag } from "@/lib/streamChat";
@@ -104,6 +104,40 @@ const CreateStory = () => {
     }
   };
 
+  const handleSurpriseMe = () => {
+    const names = ["Luna", "Max", "Aria", "Leo", "Zara", "Kai", "Mia", "Finn", "Nova", "Theo"];
+    const ages = [3, 4, 5, 6, 7, 8];
+    const genders = ["girl", "boy"];
+    const themes = ["adventure", "fantasy", "space", "underwater", "dinosaurs", "fairy tale", "superhero", "pirate"];
+    const interests = [["animals", "painting"], ["dinosaurs", "space"], ["fairies", "flowers"], ["robots", "racing"], ["dragons", "castles"], ["music", "dancing"]];
+    const morals = ["bravery", "kindness", "teamwork", "honesty", "curiosity", "patience"];
+    const tones = ["warm", "adventurous", "playful", "calm"] as const;
+    const durations = [3, 5, 8];
+    const settings = ["enchanted forest", "magical kingdom", "outer space", "underwater city", "cloud village", "dinosaur island"];
+
+    const pick = <T,>(arr: readonly T[] | T[]) => arr[Math.floor(Math.random() * arr.length)];
+    const name = pick(names);
+    const gender = pick(genders);
+
+    const randomContext = {
+      child_name: name,
+      child_age: pick(ages),
+      child_gender: gender,
+      occasion: "just for fun",
+      interests: pick(interests),
+      theme: pick(themes),
+      moral_lesson: pick(morals),
+      duration_minutes: pick(durations),
+      setting: pick(settings),
+      tone: pick(tones),
+      characters: [name],
+    };
+
+    navigate("/story-preview", {
+      state: { context: randomContext, chatHistory: [] },
+    });
+  };
+
   const handleContinue = () => {
     if (storyContext) {
       const chatHistory = messages.map((m) => ({
@@ -175,25 +209,38 @@ const CreateStory = () => {
               Preview & Generate Story
             </Button>
           ) : (
-            <div className="flex gap-2">
-              <Input
-                ref={inputRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) =>
-                  e.key === "Enter" && !e.shiftKey && sendMessage()
-                }
-                placeholder="Type your answer..."
-                className="flex-1"
-                disabled={isLoading}
-              />
-              <Button
-                onClick={sendMessage}
-                disabled={!input.trim() || isLoading}
-                className="bg-accent text-accent-foreground hover:bg-accent/90"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <Input
+                  ref={inputRef}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) =>
+                    e.key === "Enter" && !e.shiftKey && sendMessage()
+                  }
+                  placeholder="Type your answer..."
+                  className="flex-1"
+                  disabled={isLoading}
+                />
+                <Button
+                  onClick={sendMessage}
+                  disabled={!input.trim() || isLoading}
+                  className="bg-accent text-accent-foreground hover:bg-accent/90"
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
+              {messages.length <= 1 && (
+                <Button
+                  variant="outline"
+                  onClick={handleSurpriseMe}
+                  disabled={isLoading}
+                  className="w-full gap-2 text-muted-foreground hover:text-foreground"
+                >
+                  <Shuffle className="h-4 w-4" />
+                  Just Surprise Me!
+                </Button>
+              )}
             </div>
           )}
         </div>
