@@ -317,12 +317,12 @@ const StoryPlayback = () => {
       {/* Captions — positioned at top, below the top bar */}
       {showCaptions && scene?.narration_text && (
         <div
-          className={`relative z-10 flex justify-center px-8 pt-2 transition-opacity duration-300 ${
+          className={`relative z-10 flex justify-center px-8 -mt-2 transition-opacity duration-300 ${
             showControls ? "opacity-100" : "opacity-90"
           }`}
         >
-          <div className="bg-black/60 backdrop-blur-sm rounded-xl px-6 py-4 max-w-2xl">
-            <p className="text-white font-body text-base leading-relaxed text-center">
+          <div className="bg-black/60 backdrop-blur-sm rounded-xl px-4 py-2.5 max-w-2xl">
+            <p className="text-white font-body text-xs leading-relaxed text-center">
               {scene.narration_text}
             </p>
           </div>
