@@ -8,6 +8,7 @@ type TavusNarratorProps = {
   storyTitle: string;
   storySynopsis?: string;
   childName?: string;
+  voiceId?: string;
 };
 
 const requestMediaPermissions = async (): Promise<{ granted: boolean; error?: string }> => {
@@ -30,7 +31,7 @@ const requestMediaPermissions = async (): Promise<{ granted: boolean; error?: st
   }
 };
 
-const TavusNarrator = ({ storyTitle, storySynopsis, childName }: TavusNarratorProps) => {
+const TavusNarrator = ({ storyTitle, storySynopsis, childName, voiceId }: TavusNarratorProps) => {
   const [conversationUrl, setConversationUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isVisible, setIsVisible] = useState(false);

@@ -12,10 +12,21 @@ serve(async (req) => {
   }
 
   try {
-    const { story_title, story_synopsis, child_name } = await req.json();
+    const { story_title, story_synopsis, child_name, voice_id } = await req.json();
 
     const TAVUS_API_KEY = Deno.env.get("TAVUS_API_KEY");
     if (!TAVUS_API_KEY) throw new Error("TAVUS_API_KEY is not configured");
+
+    // Map ElevenLabs voice IDs to gender for matching Tavus replica
+    const femaleVoiceIds = [
+      "EXAVITQu4vr4xnSDxMaL", // Sarah (warm_female)
+      "XB0fDUnXU5powFXDhCwa", // Charlotte (playful_female)
+    ];
+    const isFemale = femaleVoiceIds.includes(voice_id || "");
+
+    // Pick a Tavus stock replica matching narrator gender
+    // Anna (female) / Lucas (male)
+    const replicaId = isFemale ? "r90bbd427f71" : "r874cc5f8a3b";
 
     // Step 1: Create a persona for this story narration
     const personaResp = await fetch("https://tavusapi.com/v2/personas", {
@@ -30,7 +41,7 @@ serve(async (req) => {
 
 You are excited to present this story! Be warm, enthusiastic, and speak as if talking to a young child's parent. Keep responses short (1-2 sentences). If they ask about the story, share fun details. You can encourage them to press "Play" to hear the full narrated story with illustrations.`,
         context: `Story title: ${story_title}. Synopsis: ${story_synopsis}. Created for: ${child_name || "a child"}.`,
-        default_replica_id: "r79e1c033f", // Tavus stock replica
+        default_replica_id: replicaId,
         layers: {
           llm: {
             model: "tavus-gemini-2.5-flash",
