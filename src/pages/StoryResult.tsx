@@ -137,6 +137,14 @@ const StoryResult = () => {
   const getRenderedScene = (sceneNum: number) =>
     renderedScenes.find((s) => s.scene_number === sceneNum);
 
+  // Auto-render on mount
+  useEffect(() => {
+    if (story?.script_id && !hasStartedRender.current && renderedScenes.length === 0) {
+      hasStartedRender.current = true;
+      renderStory();
+    }
+  }, [story?.script_id]);
+
   if (isRendering) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -207,26 +215,6 @@ const StoryResult = () => {
           </Button>
         )}
 
-        {renderedScenes.length === 0 && (
-          <Card className="border-accent/30 bg-accent/5">
-            <CardContent className="p-6 text-center space-y-4">
-              <div className="flex items-center justify-center gap-2 text-accent">
-                <Volume2 className="h-5 w-5" />
-                <Image className="h-5 w-5" />
-              </div>
-              <p className="font-body text-sm text-foreground">
-                Your story script is ready! Click below to generate voice narration and illustrations for each scene.
-              </p>
-              <Button
-                onClick={renderStory}
-                className="bg-accent text-accent-foreground hover:bg-accent/90 gap-2"
-              >
-                <Wand2 className="h-4 w-4" />
-                Render Story (Audio + Images)
-              </Button>
-            </CardContent>
-          </Card>
-        )}
 
         <div className="space-y-4">
           <h3 className="font-heading font-bold text-lg text-foreground flex items-center gap-2">
