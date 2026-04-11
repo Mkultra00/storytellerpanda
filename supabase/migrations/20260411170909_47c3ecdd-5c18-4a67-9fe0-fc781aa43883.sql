@@ -1,0 +1,1 @@
+ALTER TABLE public.story_scripts DROP CONSTRAINT IF EXISTS story_scripts_status_check;
