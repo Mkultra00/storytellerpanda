@@ -6,10 +6,12 @@ export async function streamIntakeChat({
   messages,
   onDelta,
   onDone,
+  unchained,
 }: {
   messages: Msg[];
   onDelta: (deltaText: string) => void;
   onDone: () => void;
+  unchained?: boolean;
 }) {
   const resp = await fetch(INTAKE_URL, {
     method: "POST",
@@ -17,7 +19,7 @@ export async function streamIntakeChat({
       "Content-Type": "application/json",
       Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
     },
-    body: JSON.stringify({ messages }),
+    body: JSON.stringify({ messages, unchained: unchained || false }),
   });
 
   if (!resp.ok) {
