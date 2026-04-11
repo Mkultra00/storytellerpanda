@@ -30,6 +30,18 @@ const StoryResult = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const hasStartedRender = useRef(false);
 
+  // Auto-render on mount
+  useEffect(() => {
+    if (story?.script_id && !hasStartedRender.current && renderedScenes.length === 0) {
+      hasStartedRender.current = true;
+      // Delay slightly to let component mount
+      const t = setTimeout(() => {
+        renderStoryRef.current?.();
+      }, 100);
+      return () => clearTimeout(t);
+    }
+  }, [story?.script_id]);
+
   if (!story) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
