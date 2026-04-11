@@ -80,7 +80,7 @@ const TalkToXiaobi = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <header className="flex items-center gap-3 px-6 py-4 border-b border-border">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+        <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <Video className="h-6 w-6 text-accent" />
