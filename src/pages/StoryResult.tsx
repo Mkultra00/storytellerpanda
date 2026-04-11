@@ -114,78 +114,6 @@ const StoryResult = () => {
     );
   }
 
-  const renderStory = async () => {
-    if (!story.script_id) {
-      toast({ title: "Error", description: "No script ID available for rendering.", variant: "destructive" });
-      return;
-    }
-
-    setIsRendering(true);
-    setRenderProgress(5);
-    setRenderStatus("Starting rendering pipeline...");
-
-    // Simulate progress while waiting
-    const totalScenes = story.scene_count || story.scenes?.length || 1;
-    const interval = setInterval(() => {
-      setRenderProgress((prev) => Math.min(prev + 2, 90));
-    }, 3000);
-
-    const statusMessages = [
-      "Generating voice narration...",
-      "Painting scene illustrations...",
-      "Adding magical details...",
-      "Polishing the artwork...",
-      "Almost ready...",
-    ];
-    let msgIdx = 0;
-    const statusInterval = setInterval(() => {
-      if (msgIdx < statusMessages.length) {
-        setRenderStatus(statusMessages[msgIdx]);
-        msgIdx++;
-      }
-    }, 5000);
-
-    try {
-      const resp = await fetch(RENDER_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
-        body: JSON.stringify({ script_id: story.script_id }),
-      });
-
-      clearInterval(interval);
-      clearInterval(statusInterval);
-
-      if (!resp.ok) {
-        const err = await resp.json().catch(() => ({}));
-        throw new Error(err.error || "Rendering failed");
-      }
-
-      const result = await resp.json();
-      setRenderProgress(100);
-      setRenderStatus("Rendering complete! ✨");
-      setRenderedScenes(result.scenes || []);
-      setIsRendering(false);
-
-      toast({
-        title: "Story rendered!",
-        description: `${result.scenes?.length || 0} scenes with audio and illustrations.`,
-      });
-    } catch (e: any) {
-      clearInterval(interval);
-      clearInterval(statusInterval);
-      setIsRendering(false);
-      setRenderProgress(0);
-      toast({
-        title: "Rendering failed",
-        description: e.message || "Something went wrong.",
-        variant: "destructive",
-      });
-    }
-  };
-
   const playScene = (sceneNum: number) => {
     const scene = renderedScenes.find((s) => s.scene_number === sceneNum);
     if (!scene?.audio_url) return;
@@ -209,14 +137,6 @@ const StoryResult = () => {
 
   const getRenderedScene = (sceneNum: number) =>
     renderedScenes.find((s) => s.scene_number === sceneNum);
-
-  // Auto-render on mount
-  useEffect(() => {
-    if (story?.script_id && !hasStartedRender.current && renderedScenes.length === 0) {
-      hasStartedRender.current = true;
-      renderStory();
-    }
-  }, [story?.script_id]);
 
   if (isRendering) {
     return (
