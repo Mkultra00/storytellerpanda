@@ -58,6 +58,7 @@ const StoryPlayback = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const controlsTimer = useRef<ReturnType<typeof setTimeout>>();
   const progressTimer = useRef<ReturnType<typeof setInterval>>();
+  const hasAutoPlayed = useRef(false);
 
   const scene = scenes[currentScene];
 
