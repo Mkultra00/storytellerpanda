@@ -125,7 +125,7 @@ const CreateStory = () => {
         </Button>
         <BookOpen className="h-6 w-6 text-accent" />
         <h1 className="text-xl font-heading font-bold text-foreground">
-          Create a Story
+          Xiaobi — Create a Story
         </h1>
       </header>
 

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { BookOpen, Sparkles, Headphones, Star } from "lucide-react";
+import xiaobiAvatar from "@/assets/xiaobi-avatar.png";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -22,8 +23,8 @@ const Index = () => {
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-4 max-w-6xl mx-auto">
         <div className="flex items-center gap-2">
-          <BookOpen className="h-8 w-8 text-accent" />
-          <h1 className="text-2xl font-heading font-bold text-foreground">StoryWeaver</h1>
+          <img src={xiaobiAvatar} alt="Xiaobi" className="h-10 w-10" />
+          <h1 className="text-2xl font-heading font-bold text-foreground">Xiaobi</h1>
         </div>
         <div>
           <Button onClick={() => navigate("/create")} className="bg-accent text-accent-foreground hover:bg-accent/90 font-heading font-bold">
@@ -35,19 +36,20 @@ const Index = () => {
       {/* Hero */}
       <main className="max-w-6xl mx-auto px-6 pt-12 pb-20">
         <div className="text-center space-y-6">
+          <img src={xiaobiAvatar} alt="Xiaobi the Storytelling Panda" className="h-32 w-32 mx-auto" width={512} height={512} />
+
           <div className="inline-flex items-center gap-2 bg-secondary px-4 py-2 rounded-full text-sm font-body text-foreground/80">
             <Sparkles className="h-4 w-4 text-accent" />
             AI-Powered Bedtime Stories
           </div>
 
           <h2 className="text-5xl md:text-6xl font-heading font-extrabold text-foreground leading-tight max-w-3xl mx-auto">
-            Magical Stories Made
-            <span className="text-accent"> Just for Your Child</span>
+            Meet <span className="text-accent">Xiaobi</span> — The Storytelling Panda
           </h2>
 
           <p className="text-lg text-muted-foreground font-body max-w-xl mx-auto">
-            Tell us about your child's world — their name, interests, and dreams — 
-            and we'll weave a personalized story with narration and illustrations.
+            Tell Xiaobi about your child's world — their name, interests, and dreams — 
+            and he'll weave a personalized story with narration and illustrations.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
@@ -79,7 +81,7 @@ const Index = () => {
             {
               icon: Sparkles,
               title: "AI Story Creation",
-              description: "Our AI crafts unique stories based on your child's personality, interests, and favorite characters.",
+              description: "Xiaobi crafts unique stories based on your child's personality, interests, and favorite characters.",
             },
             {
               icon: Headphones,
