@@ -115,7 +115,7 @@ const CreateStory = () => {
     const durations = [3, 5, 8];
     const settings = ["enchanted forest", "magical kingdom", "outer space", "underwater city", "cloud village", "dinosaur island"];
 
-    const pick = <T,>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
+    const pick = <T,>(arr: readonly T[] | T[]) => arr[Math.floor(Math.random() * arr.length)];
     const name = pick(names);
     const gender = pick(genders);
 
