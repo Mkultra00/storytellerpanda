@@ -114,10 +114,10 @@ const TavusNarrator = ({ storyTitle, storySynopsis, childName, voiceId }: TavusN
         {isVisible ? <VideoOff className="h-4 w-4" /> : <Video className="h-4 w-4" />}
       </Button>
       {isVisible && conversationUrl && (
-        <div className="w-72 h-72 rounded-2xl overflow-hidden shadow-2xl border-2 border-accent/30 bg-black">
+        <div className="w-80 h-96 rounded-2xl overflow-hidden shadow-2xl border-2 border-accent/30 bg-black">
           <iframe
             src={conversationUrl}
-            allow="camera *; microphone *; autoplay *; display-capture *"
+            allow="camera *; microphone *; autoplay *; display-capture *; fullscreen *"
             className="w-full h-full"
             style={{ border: "none" }}
           />
