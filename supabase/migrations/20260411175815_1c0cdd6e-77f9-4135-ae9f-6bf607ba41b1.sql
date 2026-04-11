@@ -1,0 +1,1 @@
+ALTER TABLE public.story_scripts ADD COLUMN character_image_url text;
