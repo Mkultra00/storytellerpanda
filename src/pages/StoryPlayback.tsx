@@ -260,6 +260,14 @@ const StoryPlayback = () => {
       className="fixed inset-0 bg-black flex flex-col cursor-pointer select-none"
       onClick={resetControlsTimer}
     >
+      {/* Tavus narrator PiP */}
+      <TavusNarrator
+        storyTitle={title || "Story"}
+        storySynopsis={synopsis}
+        childName={child_name}
+        voiceId={voice_id}
+      />
+
       {/* Scene Image with crossfade */}
       <div className="absolute inset-0">
         {/* Previous image (fading out) */}
