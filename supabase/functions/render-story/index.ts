@@ -28,7 +28,7 @@ serve(async (req) => {
     // Get script + scenes
     const { data: script, error: scriptError } = await supabase
       .from("story_scripts")
-      .select("*")
+      .select("*, character_image_url")
       .eq("id", script_id)
       .single();
 
@@ -115,6 +115,7 @@ serve(async (req) => {
                   visual_prompt: scene.visual_prompt,
                   scene_id: scene.id,
                   script_id: script_id,
+                  character_image_url: script.character_image_url || undefined,
                 }),
               }).then((r) => r.json())
             : Promise.resolve({ success: true, image_url: scene.image_url }),
