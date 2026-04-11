@@ -11,11 +11,7 @@ const Library = () => {
 
   useEffect(() => {
     const load = async () => {
-      const { data: session } = await supabase.auth.getSession();
-      if (!session.session) {
-        navigate("/auth");
-        return;
-      }
+      // Auth check disabled for now
 
       const { data } = await supabase
         .from("story_library")
