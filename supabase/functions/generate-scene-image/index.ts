@@ -64,6 +64,8 @@ serve(async (req) => {
       }),
     });
 
+    let imageData: string | undefined;
+
     if (!response.ok) {
       const errText = await response.text();
       console.error(`AI gateway image error [${response.status}]:`, errText);
@@ -79,21 +81,54 @@ serve(async (req) => {
           { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      return new Response(
-        JSON.stringify({ error: "Image generation failed" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      // Likely content policy violation — try a sanitized fallback prompt
+      console.warn("Original prompt failed, attempting policy-safe fallback...");
+    } else {
+      const result = await response.json();
+      imageData = result.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+      if (!imageData) {
+        console.warn("No image in response, attempting policy-safe fallback. Response:", JSON.stringify(result).slice(0, 200));
+      }
     }
 
-    const result = await response.json();
-    const imageData = result.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-
+    // If we didn't get an image, retry with a sanitized "suggestive but compliant" prompt
     if (!imageData) {
-      console.error("No image in response:", JSON.stringify(result).slice(0, 200));
-      return new Response(
-        JSON.stringify({ error: "No image generated" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      const fallbackPrompt = `Create an atmospheric, symbolic illustration that hints at the following scene without showing anything explicit or graphic. Use dramatic lighting, shadows, silhouettes, and metaphorical imagery to convey the mood and tension. Scene context: ${visual_prompt}. Style: moody cinematic illustration with heavy use of shadows, silhouettes, fog, and symbolic elements. No gore, no nudity, no explicit violence — only suggestion and atmosphere. Dark color palette with dramatic lighting.`;
+
+      console.log("Fallback prompt:", fallbackPrompt.slice(0, 100));
+
+      const fallbackResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-3.1-flash-image-preview",
+          messages: [
+            {
+              role: "user",
+              content: [{ type: "text", text: fallbackPrompt }],
+            },
+          ],
+          modalities: ["image", "text"],
+        }),
+      });
+
+      if (fallbackResponse.ok) {
+        const fallbackResult = await fallbackResponse.json();
+        imageData = fallbackResult.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+      }
+
+      if (!imageData) {
+        console.error("Fallback image generation also failed");
+        return new Response(
+          JSON.stringify({ error: "Image generation failed even with fallback" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      console.log("Successfully generated fallback image");
     }
 
     // Upload to Supabase Storage if we have script/scene IDs
