@@ -8,6 +8,7 @@ import Auth from "./pages/Auth.tsx";
 import CreateStory from "./pages/CreateStory.tsx";
 import StoryPreview from "./pages/StoryPreview.tsx";
 import StoryResult from "./pages/StoryResult.tsx";
+import StoryPlayback from "./pages/StoryPlayback.tsx";
 import Library from "./pages/Library.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/create" element={<CreateStory />} />
           <Route path="/story-preview" element={<StoryPreview />} />
           <Route path="/story-result" element={<StoryResult />} />
+          <Route path="/playback" element={<StoryPlayback />} />
           <Route path="/library" element={<Library />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
