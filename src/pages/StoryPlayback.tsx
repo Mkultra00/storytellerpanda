@@ -201,11 +201,17 @@ const StoryPlayback = () => {
 
   const handleSkipForward = () => {
     if (currentScene + 1 < scenes.length) {
-      playScene(currentScene + 1);
+      isSlideshow ? goToScene(currentScene + 1) : playScene(currentScene + 1);
+    } else if (isSlideshow) {
+      setPlaybackState("ended");
     }
   };
 
   const handleSkipBack = () => {
+    if (isSlideshow) {
+      if (currentScene > 0) goToScene(currentScene - 1);
+      return;
+    }
     // If more than 3s into scene, restart it; else go to previous
     if (audioRef.current && audioRef.current.currentTime > 3) {
       audioRef.current.currentTime = 0;
