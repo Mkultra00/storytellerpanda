@@ -90,6 +90,7 @@ const CreateStory = () => {
 
       await streamIntakeChat({
         messages: chatMessages,
+        unchained,
         onDelta: (chunk) => upsertAssistant(chunk),
         onDone: () => {
           setIsLoading(false);
