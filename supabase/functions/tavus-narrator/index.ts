@@ -21,7 +21,6 @@ const MALE_REPLICA_IDS = [
   "rf25acd9e3f5", // Patrick
   "r1a4e22fa0d9", // Benjamin
   "re2185788693", // Nathan
-  "r874cc5f8a3b", // Lucas
 ];
 
 async function createPersona({
@@ -52,7 +51,7 @@ You are excited to present this story. Be warm, enthusiastic, and speak as if ta
       default_replica_id: replicaId,
       layers: {
         llm: {
-          model: "tavus-llama-3.3-70b",
+          model: "tavus-gemini-3-flash",
         },
       },
     }),
