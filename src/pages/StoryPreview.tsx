@@ -32,58 +32,12 @@ const StoryPreview = () => {
     );
   }
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      toast({ title: "Invalid file", description: "Please upload an image file.", variant: "destructive" });
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      toast({ title: "File too large", description: "Please upload an image under 5MB.", variant: "destructive" });
-      return;
-    }
-    setCharacterImage(file);
-    setCharacterPreview(URL.createObjectURL(file));
-  };
-
-  const removeImage = () => {
-    setCharacterImage(null);
-    if (characterPreview) URL.revokeObjectURL(characterPreview);
-    setCharacterPreview(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
-
-  const uploadCharacterImage = async (): Promise<string | null> => {
-    if (!characterImage) return null;
-    setIsUploading(true);
-    try {
-      const ext = characterImage.name.split(".").pop() || "jpg";
-      const filePath = `character-refs/${Date.now()}.${ext}`;
-      const { error: uploadError } = await supabase.storage
-        .from("story-assets")
-        .upload(filePath, characterImage, { contentType: characterImage.type, upsert: true });
-      if (uploadError) throw uploadError;
-      const { data: urlData } = supabase.storage.from("story-assets").getPublicUrl(filePath);
-      return urlData.publicUrl;
-    } catch (e: any) {
-      console.error("Character image upload error:", e);
-      toast({ title: "Upload failed", description: "Could not upload character image. Generating without it.", variant: "destructive" });
-      return null;
-    } finally {
-      setIsUploading(false);
-    }
-  };
 
   const generateStory = async () => {
     setIsGenerating(true);
     setProgress(10);
-    setStatusText("Uploading character image...");
-
-    const characterImageUrl = await uploadCharacterImage();
-
-    setProgress(15);
     setStatusText("Warming up the story engine...");
+
 
     const steps = [
       { pct: 25, text: "Imagining characters..." },
@@ -180,50 +134,6 @@ const StoryPreview = () => {
       </header>
 
       <div className="max-w-2xl mx-auto px-6 py-8 space-y-6">
-        {/* Character Image Upload */}
-        <Card className="border-accent/30 bg-card">
-          <CardContent className="p-6 space-y-4">
-            <div className="flex items-center gap-2 text-accent">
-              <UserCircle className="h-5 w-5" />
-              <span className="font-heading font-bold text-lg">Main Character Photo</span>
-            </div>
-            <p className="text-sm text-muted-foreground font-body">
-              Upload a photo of {context.child_name || "your child"} to render them into the story illustrations!
-            </p>
-
-            {characterPreview ? (
-              <div className="relative inline-block">
-                <img
-                  src={characterPreview}
-                  alt="Character reference"
-                  className="w-32 h-32 rounded-2xl object-cover border-2 border-accent/40"
-                />
-                <button
-                  onClick={removeImage}
-                  className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="w-32 h-32 rounded-2xl border-2 border-dashed border-accent/40 flex flex-col items-center justify-center gap-2 hover:border-accent hover:bg-accent/5 transition-colors"
-              >
-                <Upload className="h-6 w-6 text-accent/60" />
-                <span className="text-xs text-muted-foreground">Upload photo</span>
-              </button>
-            )}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleImageSelect}
-            />
-            <p className="text-xs text-muted-foreground italic">Optional — skip to generate without a character likeness.</p>
-          </CardContent>
-        </Card>
 
         {/* Story Details */}
         <Card className="border-accent/30 bg-card">
@@ -289,7 +199,7 @@ const StoryPreview = () => {
           <Button
             className="flex-1 bg-accent text-accent-foreground hover:bg-accent/90 gap-2"
             onClick={generateStory}
-            disabled={isUploading}
+            disabled={false}
           >
             <Wand2 className="h-4 w-4" />
             Generate Story
