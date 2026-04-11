@@ -147,7 +147,7 @@ const CreateStory = () => {
     };
 
     navigate("/story-preview", {
-      state: { context: randomContext, chatHistory: [] },
+      state: { context: randomContext, chatHistory: [], unchained },
     });
   };
 
@@ -201,7 +201,7 @@ const CreateStory = () => {
         content: m.content,
       }));
       navigate("/story-preview", {
-        state: { context: storyContext, chatHistory, characterImageUrl },
+        state: { context: storyContext, chatHistory, characterImageUrl, unchained },
       });
     }
   };
