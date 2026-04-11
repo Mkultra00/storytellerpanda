@@ -15,6 +15,7 @@ const StoryPreview = () => {
   const context = location.state?.context;
   const chatHistory = location.state?.chatHistory;
   const characterImageUrl = location.state?.characterImageUrl || null;
+  const unchained = location.state?.unchained === true;
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -70,6 +71,7 @@ const StoryPreview = () => {
             character_image_url: characterImageUrl,
           },
           user_id: "00000000-0000-0000-0000-000000000000",
+          unchained,
         }),
       });
 

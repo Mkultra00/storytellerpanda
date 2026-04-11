@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { context, user_id } = await req.json();
+    const { context, user_id, unchained } = await req.json();
     if (!context || !user_id) {
       return new Response(
         JSON.stringify({ error: "Missing context or user_id" }),
@@ -32,7 +32,40 @@ serve(async (req) => {
     const duration = context.duration_minutes || 5;
     const sceneCount = duration <= 3 ? 4 : duration <= 5 ? 6 : 9;
 
-    const generatePrompt = `Create a children's story based on the following context. Output ONLY valid JSON with no markdown, no code fences, no explanation.
+    const generatePrompt = unchained
+      ? `Create a mature, adult-themed story based on the following context. This is for consenting adults only — entertainment purposes. Mature themes, violence, dark humor, gritty content, and intense scenes are allowed and encouraged. Output ONLY valid JSON with no markdown, no code fences, no explanation.
+
+Story Context:
+- Main character: ${context.child_name || "the protagonist"}
+- Genre/Theme: ${context.theme || "dark fantasy"}
+- Interests: ${(context.interests || []).join(", ")}
+- Moral/Theme: ${context.moral_lesson || "survival"}
+- Setting: ${context.setting || "a dangerous world"}
+- Tone: ${context.tone || "gritty"}
+- Characters: ${(context.characters || [context.child_name]).join(", ")}
+- Number of scenes: ${sceneCount}
+
+Create a story with EXACTLY ${sceneCount} scenes. Each scene should have vivid, mature narration and a detailed visual prompt for illustration.
+
+The narration should be engaging and pull no punches — this is adult entertainment. Each scene's narration should be 3-5 sentences.
+
+Return this EXACT JSON structure (no other text):
+{
+  "title": "Story title",
+  "synopsis": "A brief 1-2 sentence summary",
+  "voice_style": "warm_male",
+  "scenes": [
+    {
+      "scene_number": 1,
+      "narration_text": "The narration text for this scene...",
+      "visual_prompt": "A detailed illustration prompt: [style: cinematic dark illustration] [scene description with specific details, colors, lighting, composition]",
+      "duration_seconds": 25
+    }
+  ]
+}
+
+voice_style must be one of: warm_female, warm_male, playful_female, playful_male`
+      : `Create a children's story based on the following context. Output ONLY valid JSON with no markdown, no code fences, no explanation.
 
 Story Context:
 - Child's name: ${context.child_name}
@@ -80,8 +113,9 @@ voice_style must be one of: warm_female, warm_male, playful_female, playful_male
           messages: [
             {
               role: "system",
-              content:
-                "You are a master children's story writer. Create enchanting, age-appropriate stories with vivid imagery. Always respond with valid JSON only. No markdown fences, no explanation, just the JSON object.",
+              content: unchained
+                ? "You are a master storyteller for mature adult audiences. Create gripping, no-holds-barred stories with vivid imagery. Violence, dark themes, and mature content are allowed — this is entertainment for consenting adults. Always respond with valid JSON only. No markdown fences, no explanation, just the JSON object."
+                : "You are a master children's story writer. Create enchanting, age-appropriate stories with vivid imagery. Always respond with valid JSON only. No markdown fences, no explanation, just the JSON object.",
             },
             { role: "user", content: generatePrompt },
           ],

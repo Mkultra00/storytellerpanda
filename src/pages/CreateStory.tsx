@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BookOpen, Send, ArrowLeft, Sparkles, Shuffle, Upload, X, UserCircle } from "lucide-react";
@@ -19,10 +19,18 @@ const INITIAL_MESSAGE: Message = {
     "Hi there! 🌟 I'm Xiaobi, your storytelling panda! Let's create a wonderful story together!\n\nTo get started, tell me:\n• What's your child's **name**?\n• How **old** are they?\n• What's their **gender**?\n• And what's the **occasion** — is this a bedtime story, a birthday surprise, a confidence booster, or something else? 😊",
 };
 
+const UNCHAINED_INITIAL_MESSAGE: Message = {
+  role: "assistant",
+  content:
+    "🔥 **Unchained Mode Activated!** 🔥\n\nHey there! I'm Xiaobi — but tonight, the gloves are off. Let's craft a story with no limits — mature themes, dark twists, gritty action, whatever you want.\n\nTell me:\n• **Main character's name?**\n• **Genre** — horror, thriller, dark fantasy, noir, sci-fi, romance?\n• **Tone** — gritty, suspenseful, darkly comedic, intense?\n• **Any specific themes** you want explored?",
+};
+
 const CreateStory = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
-  const [messages, setMessages] = useState<Message[]>([INITIAL_MESSAGE]);
+  const unchained = location.state?.unchained === true;
+  const [messages, setMessages] = useState<Message[]>([unchained ? UNCHAINED_INITIAL_MESSAGE : INITIAL_MESSAGE]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [storyContext, setStoryContext] = useState<any>(null);
@@ -82,6 +90,7 @@ const CreateStory = () => {
 
       await streamIntakeChat({
         messages: chatMessages,
+        unchained,
         onDelta: (chunk) => upsertAssistant(chunk),
         onDone: () => {
           setIsLoading(false);
@@ -139,7 +148,7 @@ const CreateStory = () => {
     };
 
     navigate("/story-preview", {
-      state: { context: randomContext, chatHistory: [] },
+      state: { context: randomContext, chatHistory: [], unchained },
     });
   };
 
@@ -193,7 +202,7 @@ const CreateStory = () => {
         content: m.content,
       }));
       navigate("/story-preview", {
-        state: { context: storyContext, chatHistory, characterImageUrl },
+        state: { context: storyContext, chatHistory, characterImageUrl, unchained },
       });
     }
   };
