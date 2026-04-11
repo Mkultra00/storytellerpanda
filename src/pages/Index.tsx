@@ -61,6 +61,38 @@ const Index = () => {
               <Sparkles className="h-5 w-5 mr-2" />
               Start Creating
             </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={() => {
+                const names = ["Luna", "Max", "Aria", "Leo", "Zara", "Kai", "Mia", "Finn", "Nova", "Theo"];
+                const ages = [3, 4, 5, 6, 7, 8];
+                const genders = ["girl", "boy"];
+                const themes = ["adventure", "fantasy", "space", "underwater", "dinosaurs", "fairy tale", "superhero", "pirate"];
+                const interests = [["animals", "painting"], ["dinosaurs", "space"], ["fairies", "flowers"], ["robots", "racing"], ["dragons", "castles"], ["music", "dancing"]];
+                const morals = ["bravery", "kindness", "teamwork", "honesty", "curiosity", "patience"];
+                const tones = ["warm", "adventurous", "playful", "calm"];
+                const durations = [3, 5, 8];
+                const settings = ["enchanted forest", "magical kingdom", "outer space", "underwater city", "cloud village", "dinosaur island"];
+                const pick = <T,>(arr: readonly T[] | T[]) => arr[Math.floor(Math.random() * arr.length)];
+                const name = pick(names);
+                navigate("/story-preview", {
+                  state: {
+                    context: {
+                      child_name: name, child_age: pick(ages), child_gender: pick(genders),
+                      occasion: "just for fun", interests: pick(interests), theme: pick(themes),
+                      moral_lesson: pick(morals), duration_minutes: pick(durations),
+                      setting: pick(settings), tone: pick(tones), characters: [name],
+                    },
+                    chatHistory: [],
+                  },
+                });
+              }}
+              className="font-heading font-semibold text-lg px-8 py-6 rounded-lg"
+            >
+              <Shuffle className="h-5 w-5 mr-2" />
+              Surprise Me!
+            </Button>
             {user && (
               <Button
                 size="lg"
