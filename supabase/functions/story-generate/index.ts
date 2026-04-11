@@ -204,6 +204,7 @@ Return this JSON structure:
         voice_id: voiceId,
         scene_count: story.scenes.length,
         status: "generated",
+        character_image_url: context.character_image_url || null,
       })
       .select("id")
       .single();
@@ -252,6 +253,7 @@ Return this JSON structure:
         voice_id: voiceId,
         scene_count: story.scenes.length,
         scenes: story.scenes,
+        character_image_url: context.character_image_url || null,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
