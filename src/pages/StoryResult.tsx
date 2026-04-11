@@ -198,7 +198,7 @@ const StoryResult = () => {
                   duration_seconds: s.duration_seconds,
                 };
               });
-              navigate("/playback", { state: { title: story.title, scenes: playbackScenes } });
+              navigate("/playback", { state: { title: story.title, scenes: playbackScenes, synopsis: story.synopsis, voice_id: story.voice_id, child_name: story.scenes?.[0]?.narration_text?.match(/\b[A-Z][a-z]+\b/)?.[0] } });
             }}
             className="w-full bg-accent text-accent-foreground hover:bg-accent/90 gap-2 text-lg py-6"
           >

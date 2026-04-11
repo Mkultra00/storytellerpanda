@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import TavusNarrator from "@/components/TavusNarrator";
 import {
   Play,
   Pause,
@@ -30,9 +31,12 @@ const SPEED_OPTIONS = [0.75, 1, 1.25, 1.5];
 const StoryPlayback = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { title, scenes: rawScenes } = (location.state || {}) as {
+  const { title, scenes: rawScenes, synopsis, voice_id, child_name } = (location.state || {}) as {
     title?: string;
     scenes?: PlaybackScene[];
+    synopsis?: string;
+    voice_id?: string;
+    child_name?: string;
   };
 
   const scenes = rawScenes || [];
