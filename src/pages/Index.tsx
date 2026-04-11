@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Sparkles, Headphones, Star, Shuffle } from "lucide-react";
+import { BookOpen, Sparkles, Headphones, Star, Shuffle, Flame } from "lucide-react";
 import xiaobiAvatar from "@/assets/xiaobi-avatar.png";
 
 const Index = () => {
@@ -101,6 +101,14 @@ const Index = () => {
             >
               <BookOpen className="h-5 w-5 mr-2" />
               My Stories
+            </Button>
+            <Button
+              size="lg"
+              onClick={() => navigate("/create", { state: { unchained: true } })}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 font-heading font-bold text-lg px-8 py-6 rounded-lg shadow-lg hover:shadow-xl transition-all"
+            >
+              <Flame className="h-5 w-5 mr-2" />
+              Unchained Mode 🔥
             </Button>
           </div>
         </div>
