@@ -26,15 +26,9 @@ const Index = () => {
           <h1 className="text-2xl font-heading font-bold text-foreground">StoryWeaver</h1>
         </div>
         <div>
-          {user ? (
-            <Button onClick={() => navigate("/create")} className="bg-accent text-accent-foreground hover:bg-accent/90 font-heading font-bold">
-              Create Story
-            </Button>
-          ) : (
-            <Button onClick={() => navigate("/auth")} variant="outline" className="font-heading font-semibold">
-              Sign In
-            </Button>
-          )}
+          <Button onClick={() => navigate("/create")} className="bg-accent text-accent-foreground hover:bg-accent/90 font-heading font-bold">
+            Create Story
+          </Button>
         </div>
       </header>
 
@@ -59,7 +53,7 @@ const Index = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
             <Button
               size="lg"
-              onClick={() => navigate(user ? "/create" : "/auth")}
+              onClick={() => navigate("/create")}
               className="bg-accent text-accent-foreground hover:bg-accent/90 font-heading font-bold text-lg px-8 py-6 rounded-lg shadow-lg hover:shadow-xl transition-all"
             >
               <Sparkles className="h-5 w-5 mr-2" />

@@ -26,12 +26,7 @@ const CreateStory = () => {
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    // Check auth
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) navigate("/auth");
-    });
-  }, [navigate]);
+  // Auth check disabled for now
 
   useEffect(() => {
     if (scrollRef.current) {
