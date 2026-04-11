@@ -36,7 +36,7 @@ const Index = () => {
       {/* Hero */}
       <main className="max-w-6xl mx-auto px-6 pt-12 pb-20">
         <div className="text-center space-y-6">
-          <img src={xiaobiAvatar} alt="Xiaobi the Storytelling Panda" className="h-32 w-32 mx-auto" width={512} height={512} />
+          <img src={xiaobiAvatar} alt="Xiaobi the Storytelling Panda" className="h-[640px] w-[640px] mx-auto" width={512} height={512} />
 
           <div className="inline-flex items-center gap-2 bg-secondary px-4 py-2 rounded-full text-sm font-body text-foreground/80">
             <Sparkles className="h-4 w-4 text-accent" />
