@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BookOpen, Send, ArrowLeft, Sparkles } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
+import { streamIntakeChat, parseStoryContext, stripStoryContextTag } from "@/lib/streamChat";
 
 type Message = {
   role: "user" | "assistant";
@@ -24,9 +24,8 @@ const CreateStory = () => {
   const [messages, setMessages] = useState<Message[]>([INITIAL_MESSAGE]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [storyContext, setStoryContext] = useState<any>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-
-  // Auth check disabled for now
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -43,36 +42,67 @@ const CreateStory = () => {
     setInput("");
     setIsLoading(true);
 
-    // For now, simulate AI responses with a placeholder
-    // This will be replaced with the story-intake edge function in Phase 2
-    setTimeout(() => {
-      const step = newMessages.filter((m) => m.role === "user").length;
-      let response = "";
+    let assistantSoFar = "";
 
-      switch (step) {
-        case 1:
-          response = `What a lovely name! 💛 And how old is ${input.trim()}?`;
-          break;
-        case 2:
-          response = `Perfect! What are some things ${newMessages[1]?.content || "they"} love? Hobbies, favorite animals, superheroes — anything goes! 🎨`;
-          break;
-        case 3:
-          response = `Love it! Now, what kind of story should we create? Here are some ideas:\n\n🏰 **Adventure** — exploring new worlds\n🌙 **Bedtime** — calm & cozy\n🦸 **Superhero** — saving the day\n🧚 **Fantasy** — magic & wonder\n\nOr tell me your own idea!`;
-          break;
-        case 4:
-          response = `Great choice! Is there a lesson or message you'd like the story to include? For example:\n\n💪 Bravery\n🤝 Kindness\n🌱 Growth\n✨ Self-belief\n\nOr just say "surprise me!"`;
-          break;
-        case 5:
-          response = `Wonderful! One last question — how long should the story be?\n\n📖 **Short** (~3 minutes)\n📚 **Medium** (~5 minutes)\n📕 **Long** (~8 minutes)`;
-          break;
-        default:
-          response = `Amazing! I have everything I need to create a magical story. Click the button below when you're ready!\n\n✨ **Generating your story...**\n\n_(Story generation will be available in Phase 2)_`;
-          break;
-      }
+    const upsertAssistant = (chunk: string) => {
+      assistantSoFar += chunk;
+      setMessages((prev) => {
+        const last = prev[prev.length - 1];
+        if (last?.role === "assistant" && prev.length > newMessages.length) {
+          return prev.map((m, i) =>
+            i === prev.length - 1 ? { ...m, content: assistantSoFar } : m
+          );
+        }
+        return [...prev, { role: "assistant", content: assistantSoFar }];
+      });
+    };
 
-      setMessages((prev) => [...prev, { role: "assistant", content: response }]);
+    try {
+      // Send only user/assistant messages (skip system)
+      const chatMessages = newMessages.map((m) => ({
+        role: m.role,
+        content: m.content,
+      }));
+
+      await streamIntakeChat({
+        messages: chatMessages,
+        onDelta: (chunk) => upsertAssistant(chunk),
+        onDone: () => {
+          setIsLoading(false);
+          // Check if the final message contains a STORY_CONTEXT
+          const ctx = parseStoryContext(assistantSoFar);
+          if (ctx) {
+            setStoryContext(ctx);
+            // Update the displayed message to strip the JSON block
+            const cleanContent = stripStoryContextTag(assistantSoFar);
+            setMessages((prev) =>
+              prev.map((m, i) =>
+                i === prev.length - 1 ? { ...m, content: cleanContent } : m
+              )
+            );
+          }
+        },
+      });
+    } catch (e: any) {
       setIsLoading(false);
-    }, 1000);
+      toast({
+        title: "Oops!",
+        description: e.message || "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleContinue = () => {
+    if (storyContext) {
+      const chatHistory = messages.map((m) => ({
+        role: m.role,
+        content: m.content,
+      }));
+      navigate("/story-preview", {
+        state: { context: storyContext, chatHistory },
+      });
+    }
   };
 
   return (
@@ -83,7 +113,9 @@ const CreateStory = () => {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <BookOpen className="h-6 w-6 text-accent" />
-        <h1 className="text-xl font-heading font-bold text-foreground">Create a Story</h1>
+        <h1 className="text-xl font-heading font-bold text-foreground">
+          Create a Story
+        </h1>
       </header>
 
       {/* Chat */}
@@ -92,7 +124,9 @@ const CreateStory = () => {
           {messages.map((msg, i) => (
             <div
               key={i}
-              className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+              className={`flex ${
+                msg.role === "user" ? "justify-end" : "justify-start"
+              }`}
             >
               <div
                 className={`max-w-[80%] rounded-lg px-4 py-3 font-body text-sm whitespace-pre-wrap ${
@@ -108,7 +142,7 @@ const CreateStory = () => {
               </div>
             </div>
           ))}
-          {isLoading && (
+          {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
             <div className="flex justify-start">
               <div className="bg-secondary rounded-lg px-4 py-3 text-sm">
                 <span className="animate-pulse">✨ Thinking...</span>
@@ -118,24 +152,38 @@ const CreateStory = () => {
         </div>
       </ScrollArea>
 
-      {/* Input */}
+      {/* Input / Continue */}
       <div className="border-t border-border p-4">
-        <div className="max-w-2xl mx-auto flex gap-2">
-          <Input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage()}
-            placeholder="Type your answer..."
-            className="flex-1"
-            disabled={isLoading}
-          />
-          <Button
-            onClick={sendMessage}
-            disabled={!input.trim() || isLoading}
-            className="bg-accent text-accent-foreground hover:bg-accent/90"
-          >
-            <Send className="h-4 w-4" />
-          </Button>
+        <div className="max-w-2xl mx-auto">
+          {storyContext ? (
+            <Button
+              onClick={handleContinue}
+              className="w-full bg-accent text-accent-foreground hover:bg-accent/90 gap-2 text-base py-6"
+            >
+              <Sparkles className="h-5 w-5" />
+              Preview & Generate Story
+            </Button>
+          ) : (
+            <div className="flex gap-2">
+              <Input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) =>
+                  e.key === "Enter" && !e.shiftKey && sendMessage()
+                }
+                placeholder="Type your answer..."
+                className="flex-1"
+                disabled={isLoading}
+              />
+              <Button
+                onClick={sendMessage}
+                disabled={!input.trim() || isLoading}
+                className="bg-accent text-accent-foreground hover:bg-accent/90"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </div>
