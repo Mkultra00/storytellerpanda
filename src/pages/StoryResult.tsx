@@ -79,14 +79,33 @@ const StoryResult = () => {
 
         const result = await resp.json();
         setRenderProgress(100);
-        setRenderStatus("Rendering complete! ✨");
-        setRenderedScenes(result.scenes || []);
-        setIsRendering(false);
+        setRenderStatus("Rendering complete! Starting playback...");
+        const rendered = result.scenes || [];
+        setRenderedScenes(rendered);
 
-        toast({
-          title: "Story rendered!",
-          description: `${result.scenes?.length || 0} scenes with audio and illustrations.`,
+        // Auto-navigate to playback
+        const playbackScenes = story.scenes?.map((s: any) => {
+          const r = rendered.find((rs: any) => rs.scene_number === s.scene_number);
+          return {
+            scene_number: s.scene_number,
+            narration_text: s.narration_text,
+            audio_url: r?.audio_url,
+            image_url: r?.image_url,
+            duration_seconds: s.duration_seconds,
+          };
         });
+        setTimeout(() => {
+          navigate("/playback", {
+            state: {
+              title: story.title,
+              scenes: playbackScenes,
+              synopsis: story.synopsis,
+              voice_id: story.voice_id,
+              child_name: story.scenes?.[0]?.narration_text?.match(/\b[A-Z][a-z]+\b/)?.[0],
+              autoPlay: true,
+            },
+          });
+        }, 1200);
       } catch (e: any) {
         clearInterval(interval);
         clearInterval(statusInterval);
