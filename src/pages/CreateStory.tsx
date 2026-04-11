@@ -249,13 +249,41 @@ const CreateStory = () => {
       <div className="border-t border-border p-4">
         <div className="max-w-2xl mx-auto">
           {storyContext ? (
-            <Button
-              onClick={handleContinue}
-              className="w-full bg-accent text-accent-foreground hover:bg-accent/90 gap-2 text-base py-6"
-            >
-              <Sparkles className="h-5 w-5" />
-              Preview & Generate Story
-            </Button>
+            <div className="space-y-4">
+              {/* Character image upload */}
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 border border-border">
+                <UserCircle className="h-5 w-5 text-accent shrink-0" />
+                {characterPreview ? (
+                  <div className="relative">
+                    <img src={characterPreview} alt="Character" className="w-16 h-16 rounded-xl object-cover border border-accent/40" />
+                    <button onClick={removeImage} className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full p-0.5">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-16 h-16 rounded-xl border-2 border-dashed border-accent/40 flex flex-col items-center justify-center gap-1 hover:border-accent hover:bg-accent/5 transition-colors shrink-0"
+                  >
+                    <Upload className="h-4 w-4 text-accent/60" />
+                    <span className="text-[10px] text-muted-foreground">Photo</span>
+                  </button>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-foreground">Upload character photo</p>
+                  <p className="text-xs text-muted-foreground">Optional — adds your child's likeness to illustrations</p>
+                </div>
+                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
+              </div>
+              <Button
+                onClick={handleContinue}
+                disabled={isUploading}
+                className="w-full bg-accent text-accent-foreground hover:bg-accent/90 gap-2 text-base py-6"
+              >
+                <Sparkles className="h-5 w-5" />
+                {isUploading ? "Uploading..." : "Preview & Generate Story"}
+              </Button>
+            </div>
           ) : (
             <div className="space-y-2">
               <div className="flex gap-2">
