@@ -314,10 +314,10 @@ const StoryPlayback = () => {
         </Button>
       </div>
 
-      {/* Captions */}
+      {/* Captions — positioned at top, below the top bar */}
       {showCaptions && scene?.narration_text && (
         <div
-          className={`relative z-10 flex-1 flex items-end justify-center pb-40 px-8 transition-opacity duration-300 ${
+          className={`relative z-10 flex justify-center px-8 pt-2 transition-opacity duration-300 ${
             showControls ? "opacity-100" : "opacity-90"
           }`}
         >
@@ -328,6 +328,9 @@ const StoryPlayback = () => {
           </div>
         </div>
       )}
+
+      {/* Spacer to push controls to bottom */}
+      <div className="flex-1" />
 
       {/* Bottom controls */}
       <div
