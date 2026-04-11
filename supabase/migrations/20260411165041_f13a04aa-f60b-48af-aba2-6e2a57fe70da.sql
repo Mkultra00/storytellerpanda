@@ -1,0 +1,3 @@
+ALTER TABLE public.story_contexts DROP CONSTRAINT story_contexts_user_id_fkey;
+ALTER TABLE public.story_scripts DROP CONSTRAINT story_scripts_user_id_fkey;
+ALTER TABLE public.story_library DROP CONSTRAINT story_library_user_id_fkey;
