@@ -28,6 +28,80 @@ const StoryResult = () => {
   const [renderedScenes, setRenderedScenes] = useState<SceneRenderResult[]>([]);
   const [playingScene, setPlayingScene] = useState<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const hasStartedRender = useRef(false);
+
+  // Auto-render on mount
+  useEffect(() => {
+    if (!story?.script_id || hasStartedRender.current) return;
+    hasStartedRender.current = true;
+
+    const doRender = async () => {
+      setIsRendering(true);
+      setRenderProgress(5);
+      setRenderStatus("Starting rendering pipeline...");
+
+      const interval = setInterval(() => {
+        setRenderProgress((prev) => Math.min(prev + 2, 90));
+      }, 3000);
+
+      const statusMessages = [
+        "Generating voice narration...",
+        "Painting scene illustrations...",
+        "Adding magical details...",
+        "Polishing the artwork...",
+        "Almost ready...",
+      ];
+      let msgIdx = 0;
+      const statusInterval = setInterval(() => {
+        if (msgIdx < statusMessages.length) {
+          setRenderStatus(statusMessages[msgIdx]);
+          msgIdx++;
+        }
+      }, 5000);
+
+      try {
+        const resp = await fetch(RENDER_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({ script_id: story.script_id }),
+        });
+
+        clearInterval(interval);
+        clearInterval(statusInterval);
+
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({}));
+          throw new Error(err.error || "Rendering failed");
+        }
+
+        const result = await resp.json();
+        setRenderProgress(100);
+        setRenderStatus("Rendering complete! ✨");
+        setRenderedScenes(result.scenes || []);
+        setIsRendering(false);
+
+        toast({
+          title: "Story rendered!",
+          description: `${result.scenes?.length || 0} scenes with audio and illustrations.`,
+        });
+      } catch (e: any) {
+        clearInterval(interval);
+        clearInterval(statusInterval);
+        setIsRendering(false);
+        setRenderProgress(0);
+        toast({
+          title: "Rendering failed",
+          description: e.message || "Something went wrong.",
+          variant: "destructive",
+        });
+      }
+    };
+
+    doRender();
+  }, [story?.script_id]);
 
   if (!story) {
     return (
@@ -39,78 +113,6 @@ const StoryResult = () => {
       </div>
     );
   }
-
-  const renderStory = async () => {
-    if (!story.script_id) {
-      toast({ title: "Error", description: "No script ID available for rendering.", variant: "destructive" });
-      return;
-    }
-
-    setIsRendering(true);
-    setRenderProgress(5);
-    setRenderStatus("Starting rendering pipeline...");
-
-    // Simulate progress while waiting
-    const totalScenes = story.scene_count || story.scenes?.length || 1;
-    const interval = setInterval(() => {
-      setRenderProgress((prev) => Math.min(prev + 2, 90));
-    }, 3000);
-
-    const statusMessages = [
-      "Generating voice narration...",
-      "Painting scene illustrations...",
-      "Adding magical details...",
-      "Polishing the artwork...",
-      "Almost ready...",
-    ];
-    let msgIdx = 0;
-    const statusInterval = setInterval(() => {
-      if (msgIdx < statusMessages.length) {
-        setRenderStatus(statusMessages[msgIdx]);
-        msgIdx++;
-      }
-    }, 5000);
-
-    try {
-      const resp = await fetch(RENDER_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
-        body: JSON.stringify({ script_id: story.script_id }),
-      });
-
-      clearInterval(interval);
-      clearInterval(statusInterval);
-
-      if (!resp.ok) {
-        const err = await resp.json().catch(() => ({}));
-        throw new Error(err.error || "Rendering failed");
-      }
-
-      const result = await resp.json();
-      setRenderProgress(100);
-      setRenderStatus("Rendering complete! ✨");
-      setRenderedScenes(result.scenes || []);
-      setIsRendering(false);
-
-      toast({
-        title: "Story rendered!",
-        description: `${result.scenes?.length || 0} scenes with audio and illustrations.`,
-      });
-    } catch (e: any) {
-      clearInterval(interval);
-      clearInterval(statusInterval);
-      setIsRendering(false);
-      setRenderProgress(0);
-      toast({
-        title: "Rendering failed",
-        description: e.message || "Something went wrong.",
-        variant: "destructive",
-      });
-    }
-  };
 
   const playScene = (sceneNum: number) => {
     const scene = renderedScenes.find((s) => s.scene_number === sceneNum);
@@ -206,26 +208,6 @@ const StoryResult = () => {
           </Button>
         )}
 
-        {renderedScenes.length === 0 && (
-          <Card className="border-accent/30 bg-accent/5">
-            <CardContent className="p-6 text-center space-y-4">
-              <div className="flex items-center justify-center gap-2 text-accent">
-                <Volume2 className="h-5 w-5" />
-                <Image className="h-5 w-5" />
-              </div>
-              <p className="font-body text-sm text-foreground">
-                Your story script is ready! Click below to generate voice narration and illustrations for each scene.
-              </p>
-              <Button
-                onClick={renderStory}
-                className="bg-accent text-accent-foreground hover:bg-accent/90 gap-2"
-              >
-                <Wand2 className="h-4 w-4" />
-                Render Story (Audio + Images)
-              </Button>
-            </CardContent>
-          </Card>
-        )}
 
         <div className="space-y-4">
           <h3 className="font-heading font-bold text-lg text-foreground flex items-center gap-2">
