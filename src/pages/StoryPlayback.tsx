@@ -56,7 +56,7 @@ const StoryPlayback = () => {
   const [showControls, setShowControls] = useState(true);
   const [prevImage, setPrevImage] = useState<string | null>(null);
   const [crossfading, setCrossfading] = useState(false);
-  const [showCaptions, setShowCaptions] = useState(true);
+  const [showCaptions, setShowCaptions] = useState(isSlideshow);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const controlsTimer = useRef<ReturnType<typeof setTimeout>>();
