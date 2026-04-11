@@ -178,6 +178,27 @@ const StoryResult = () => {
           <p className="text-sm text-accent">{story.scene_count} scenes</p>
         </div>
 
+        {renderedScenes.length > 0 && (
+          <Button
+            onClick={() => {
+              const playbackScenes = story.scenes?.map((s: any) => {
+                const rendered = getRenderedScene(s.scene_number);
+                return {
+                  scene_number: s.scene_number,
+                  narration_text: s.narration_text,
+                  audio_url: rendered?.audio_url,
+                  image_url: rendered?.image_url,
+                  duration_seconds: s.duration_seconds,
+                };
+              });
+              navigate("/playback", { state: { title: story.title, scenes: playbackScenes } });
+            }}
+            className="w-full bg-accent text-accent-foreground hover:bg-accent/90 gap-2 text-lg py-6"
+          >
+            <Play className="h-5 w-5" /> Play Full Story
+          </Button>
+        )}
+
         {renderedScenes.length === 0 && (
           <Card className="border-accent/30 bg-accent/5">
             <CardContent className="p-6 text-center space-y-4">
