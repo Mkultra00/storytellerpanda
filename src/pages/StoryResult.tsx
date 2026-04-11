@@ -165,6 +165,11 @@ const StoryResult = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <TavusNarrator
+        storyTitle={story.title}
+        storySynopsis={story.synopsis}
+        childName={story.scenes?.[0]?.narration_text?.match(/\b[A-Z][a-z]+\b/)?.[0]}
+      />
       <header className="flex items-center gap-3 px-6 py-4 border-b border-border">
         <Sparkles className="h-6 w-6 text-accent" />
         <h1 className="text-xl font-heading font-bold text-foreground">
