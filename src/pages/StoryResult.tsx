@@ -32,14 +32,75 @@ const StoryResult = () => {
 
   // Auto-render on mount
   useEffect(() => {
-    if (story?.script_id && !hasStartedRender.current && renderedScenes.length === 0) {
-      hasStartedRender.current = true;
-      // Delay slightly to let component mount
-      const t = setTimeout(() => {
-        renderStoryRef.current?.();
-      }, 100);
-      return () => clearTimeout(t);
-    }
+    if (!story?.script_id || hasStartedRender.current) return;
+    hasStartedRender.current = true;
+
+    const doRender = async () => {
+      setIsRendering(true);
+      setRenderProgress(5);
+      setRenderStatus("Starting rendering pipeline...");
+
+      const interval = setInterval(() => {
+        setRenderProgress((prev) => Math.min(prev + 2, 90));
+      }, 3000);
+
+      const statusMessages = [
+        "Generating voice narration...",
+        "Painting scene illustrations...",
+        "Adding magical details...",
+        "Polishing the artwork...",
+        "Almost ready...",
+      ];
+      let msgIdx = 0;
+      const statusInterval = setInterval(() => {
+        if (msgIdx < statusMessages.length) {
+          setRenderStatus(statusMessages[msgIdx]);
+          msgIdx++;
+        }
+      }, 5000);
+
+      try {
+        const resp = await fetch(RENDER_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({ script_id: story.script_id }),
+        });
+
+        clearInterval(interval);
+        clearInterval(statusInterval);
+
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({}));
+          throw new Error(err.error || "Rendering failed");
+        }
+
+        const result = await resp.json();
+        setRenderProgress(100);
+        setRenderStatus("Rendering complete! ✨");
+        setRenderedScenes(result.scenes || []);
+        setIsRendering(false);
+
+        toast({
+          title: "Story rendered!",
+          description: `${result.scenes?.length || 0} scenes with audio and illustrations.`,
+        });
+      } catch (e: any) {
+        clearInterval(interval);
+        clearInterval(statusInterval);
+        setIsRendering(false);
+        setRenderProgress(0);
+        toast({
+          title: "Rendering failed",
+          description: e.message || "Something went wrong.",
+          variant: "destructive",
+        });
+      }
+    };
+
+    doRender();
   }, [story?.script_id]);
 
   if (!story) {
