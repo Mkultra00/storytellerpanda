@@ -26,12 +26,23 @@ const CreateStory = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [storyContext, setStoryContext] = useState<any>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    // Scroll to bottom on new messages
+    requestAnimationFrame(() => {
+      if (scrollRef.current) {
+        const scrollContainer = scrollRef.current.querySelector('[data-radix-scroll-area-viewport]');
+        if (scrollContainer) {
+          scrollContainer.scrollTop = scrollContainer.scrollHeight;
+        }
+      }
+    });
+    // Refocus input after assistant reply
+    if (!isLoading && inputRef.current) {
+      inputRef.current.focus();
     }
-  }, [messages]);
+  }, [messages, isLoading]);
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
@@ -166,6 +177,7 @@ const CreateStory = () => {
           ) : (
             <div className="flex gap-2">
               <Input
+                ref={inputRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) =>
