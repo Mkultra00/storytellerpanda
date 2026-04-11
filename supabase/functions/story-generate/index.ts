@@ -32,7 +32,7 @@ serve(async (req) => {
     const duration = context.duration_minutes || 5;
     const sceneCount = duration <= 3 ? 4 : duration <= 5 ? 6 : 9;
 
-    const generatePrompt = `Create a children's story based on the following context. Output ONLY valid JSON with no other text.
+    const generatePrompt = `Create a children's story based on the following context. Output ONLY valid JSON with no markdown, no code fences, no explanation.
 
 Story Context:
 - Child's name: ${context.child_name}
@@ -45,15 +45,15 @@ Story Context:
 - Characters: ${(context.characters || [context.child_name]).join(", ")}
 - Number of scenes: ${sceneCount}
 
-Create a story with exactly ${sceneCount} scenes. Each scene should have narration text suitable for a ${context.child_age}-year-old and a detailed visual prompt for illustration generation.
+Create a story with EXACTLY ${sceneCount} scenes. Each scene should have narration text suitable for a ${context.child_age}-year-old and a detailed visual prompt for illustration generation.
 
 The narration should be engaging, age-appropriate, and incorporate the child's name as the main character. Each scene's narration should be 2-4 sentences.
 
-Return this JSON structure:
+Return this EXACT JSON structure (no other text):
 {
   "title": "Story title",
   "synopsis": "A brief 1-2 sentence summary",
-  "voice_style": "warm_female|warm_male|playful_female|playful_male",
+  "voice_style": "warm_female",
   "scenes": [
     {
       "scene_number": 1,
@@ -62,9 +62,11 @@ Return this JSON structure:
       "duration_seconds": 20
     }
   ]
-}`;
+}
 
-    // Call Gemini via tool calling for structured output
+voice_style must be one of: warm_female, warm_male, playful_female, playful_male`;
+
+    // Use plain JSON mode instead of tool calling for better compatibility
     const response = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
       {
@@ -74,52 +76,16 @@ Return this JSON structure:
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-3.1-pro-preview",
+          model: "google/gemini-2.5-flash",
           messages: [
             {
               role: "system",
               content:
-                "You are a master children's story writer. Create enchanting, age-appropriate stories with vivid imagery. Always respond with valid JSON only.",
+                "You are a master children's story writer. Create enchanting, age-appropriate stories with vivid imagery. Always respond with valid JSON only. No markdown fences, no explanation, just the JSON object.",
             },
             { role: "user", content: generatePrompt },
           ],
-          tools: [
-            {
-              type: "function",
-              function: {
-                name: "create_story",
-                description: "Create a complete children's story with scenes",
-                parameters: {
-                  type: "object",
-                  properties: {
-                    title: { type: "string", description: "The story title" },
-                    synopsis: { type: "string", description: "Brief 1-2 sentence summary" },
-                    voice_style: {
-                      type: "string",
-                      enum: ["warm_female", "warm_male", "playful_female", "playful_male"],
-                    },
-                    scenes: {
-                      type: "array",
-                      items: {
-                        type: "object",
-                        properties: {
-                          scene_number: { type: "number" },
-                          narration_text: { type: "string" },
-                          visual_prompt: { type: "string" },
-                          duration_seconds: { type: "number" },
-                        },
-                        required: ["scene_number", "narration_text", "visual_prompt", "duration_seconds"],
-                        additionalProperties: false,
-                      },
-                    },
-                  },
-                  required: ["title", "synopsis", "voice_style", "scenes"],
-                  additionalProperties: false,
-                },
-              },
-            },
-          ],
-          tool_choice: { type: "function", function: { name: "create_story" } },
+          response_format: { type: "json_object" },
         }),
       }
     );
@@ -146,23 +112,35 @@ Return this JSON structure:
     }
 
     const aiResult = await response.json();
+    
+    // Parse the content - try tool_calls first, then content
+    let story: any;
     const toolCall = aiResult.choices?.[0]?.message?.tool_calls?.[0];
-    if (!toolCall) {
-      console.error("No tool call in response:", JSON.stringify(aiResult));
+    if (toolCall?.function?.arguments) {
+      story = JSON.parse(toolCall.function.arguments);
+    } else {
+      const content = aiResult.choices?.[0]?.message?.content || "";
+      // Strip markdown fences if present
+      const cleaned = content.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
+      story = JSON.parse(cleaned);
+    }
+
+    console.log("Parsed story:", JSON.stringify({ title: story.title, sceneCount: story.scenes?.length }));
+
+    if (!story.scenes || story.scenes.length === 0) {
+      console.error("AI returned empty scenes. Full response:", JSON.stringify(aiResult).slice(0, 2000));
       return new Response(
-        JSON.stringify({ error: "Failed to generate structured story" }),
+        JSON.stringify({ error: "Story generation returned no scenes. Please try again." }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const story = JSON.parse(toolCall.function.arguments);
-
     // Map voice_style to ElevenLabs voice ID
     const voiceMap: Record<string, string> = {
-      warm_female: "EXAVITQu4vr4xnSDxMaL",   // Sarah
-      warm_male: "JBFqnCBsd6RMkjVDRZzb",       // George
-      playful_female: "XB0fDUnXU5powFXDhCwa",   // Charlotte
-      playful_male: "TX3LPaxmHKxFdv7VOQHJ",    // Liam
+      warm_female: "EXAVITQu4vr4xnSDxMaL",
+      warm_male: "JBFqnCBsd6RMkjVDRZzb",
+      playful_female: "XB0fDUnXU5powFXDhCwa",
+      playful_male: "TX3LPaxmHKxFdv7VOQHJ",
     };
     const voiceId = voiceMap[story.voice_style] || "JBFqnCBsd6RMkjVDRZzb";
 
@@ -204,6 +182,7 @@ Return this JSON structure:
         voice_id: voiceId,
         scene_count: story.scenes.length,
         status: "generated",
+        character_image_url: context.character_image_url || null,
       })
       .select("id")
       .single();
@@ -252,6 +231,7 @@ Return this JSON structure:
         voice_id: voiceId,
         scene_count: story.scenes.length,
         scenes: story.scenes,
+        character_image_url: context.character_image_url || null,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
