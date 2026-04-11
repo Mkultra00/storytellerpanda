@@ -2,39 +2,42 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { BookOpen, ArrowLeft, Heart, Play } from "lucide-react";
+import { BookOpen, ArrowLeft, Heart, Play, Trash2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const Library = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [stories, setStories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState<string | null>(null);
+
+  const loadStories = async () => {
+    const { data } = await supabase
+      .from("story_library")
+      .select("*, story_scripts(*)")
+      .order("created_at", { ascending: false });
+
+    if (data) {
+      const enriched = await Promise.all(
+        data.map(async (item) => {
+          const { data: scenes } = await supabase
+            .from("story_scenes")
+            .select("*")
+            .eq("script_id", item.script_id)
+            .order("scene_number");
+          return { ...item, scenes: scenes || [] };
+        })
+      );
+      setStories(enriched);
+    } else {
+      setStories([]);
+    }
+    setLoading(false);
+  };
 
   useEffect(() => {
-    const load = async () => {
-      const { data } = await supabase
-        .from("story_library")
-        .select("*, story_scripts(*)")
-        .order("created_at", { ascending: false });
-
-      if (data) {
-        // For each story, load its scenes
-        const enriched = await Promise.all(
-          data.map(async (item) => {
-            const { data: scenes } = await supabase
-              .from("story_scenes")
-              .select("*")
-              .eq("script_id", item.script_id)
-              .order("scene_number");
-            return { ...item, scenes: scenes || [] };
-          })
-        );
-        setStories(enriched);
-      } else {
-        setStories([]);
-      }
-      setLoading(false);
-    };
-    load();
+    loadStories();
   }, []);
 
   const playStory = (item: any) => {
@@ -46,8 +49,28 @@ const Library = () => {
       duration_seconds: s.duration_seconds,
     }));
     navigate("/playback", {
-      state: { title: item.story_scripts?.title, scenes: playbackScenes },
+      state: {
+        title: item.story_scripts?.title,
+        scenes: playbackScenes,
+        synopsis: item.story_scripts?.synopsis,
+        voice_id: item.story_scripts?.voice_id,
+        autoPlay: true,
+      },
     });
+  };
+
+  const deleteStory = async (item: any) => {
+    setDeleting(item.id);
+    try {
+      // Delete from library
+      await supabase.from("story_library").delete().eq("id", item.id);
+      setStories((prev) => prev.filter((s) => s.id !== item.id));
+      toast({ title: "Story deleted", description: `"${item.story_scripts?.title}" removed from your library.` });
+    } catch (e: any) {
+      toast({ title: "Delete failed", description: e.message || "Something went wrong.", variant: "destructive" });
+    } finally {
+      setDeleting(null);
+    }
   };
 
   return (
@@ -108,6 +131,15 @@ const Library = () => {
                       </Button>
                       <Button size="sm" variant="ghost">
                         <Heart className={`h-4 w-4 ${item.is_favorite ? "fill-destructive text-destructive" : ""}`} />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => deleteStory(item)}
+                        disabled={deleting === item.id}
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                       <span className="text-xs text-muted-foreground font-body ml-auto">
                         {item.scenes.length} scenes

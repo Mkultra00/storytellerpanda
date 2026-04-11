@@ -31,12 +31,13 @@ const SPEED_OPTIONS = [0.75, 1, 1.25, 1.5];
 const StoryPlayback = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { title, scenes: rawScenes, synopsis, voice_id, child_name } = (location.state || {}) as {
+  const { title, scenes: rawScenes, synopsis, voice_id, child_name, autoPlay } = (location.state || {}) as {
     title?: string;
     scenes?: PlaybackScene[];
     synopsis?: string;
     voice_id?: string;
     child_name?: string;
+    autoPlay?: boolean;
   };
 
   const scenes = rawScenes || [];
