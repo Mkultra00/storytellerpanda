@@ -14,7 +14,7 @@ serve(async (req) => {
   }
 
   try {
-    const { visual_prompt, scene_id, script_id } = await req.json();
+    const { visual_prompt, scene_id, script_id, character_image_url } = await req.json();
 
     if (!visual_prompt) {
       return new Response(
@@ -30,9 +30,22 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    console.log(`Generating image for scene ${scene_id}, prompt: ${visual_prompt.slice(0, 80)}...`);
+    console.log(`Generating image for scene ${scene_id}, prompt: ${visual_prompt.slice(0, 80)}..., has character ref: ${!!character_image_url}`);
 
-    // Use Lovable AI Gateway with Nano Banana 2 for fast + quality image gen
+    // Build the message content — multimodal if we have a character reference image
+    const textPrompt = character_image_url
+      ? `Generate a beautiful children's book illustration: ${visual_prompt}. Style: warm watercolor illustration with soft edges, vibrant but gentle colors, suitable for a children's storybook. The image should be whimsical and enchanting. Do not include any text in the image. IMPORTANT: The main character in this scene should look like the person in the reference photo I'm providing — match their appearance, hair, skin tone, and features, but render them in the illustrated children's book style.`
+      : `Generate a beautiful children's book illustration: ${visual_prompt}. Style: warm watercolor illustration with soft edges, vibrant but gentle colors, suitable for a children's storybook. The image should be whimsical and enchanting. Do not include any text in the image.`;
+
+    const messageContent: any[] = [{ type: "text", text: textPrompt }];
+
+    if (character_image_url) {
+      messageContent.push({
+        type: "image_url",
+        image_url: { url: character_image_url },
+      });
+    }
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -44,7 +57,7 @@ serve(async (req) => {
         messages: [
           {
             role: "user",
-            content: `Generate a beautiful children's book illustration: ${visual_prompt}. Style: warm watercolor illustration with soft edges, vibrant but gentle colors, suitable for a children's storybook. The image should be whimsical and enchanting. Do not include any text in the image.`,
+            content: messageContent,
           },
         ],
         modalities: ["image", "text"],
@@ -85,7 +98,6 @@ serve(async (req) => {
 
     // Upload to Supabase Storage if we have script/scene IDs
     if (script_id && scene_id) {
-      // Extract base64 data from data URI
       const base64Match = imageData.match(/^data:image\/(\w+);base64,(.+)$/);
       if (base64Match) {
         const ext = base64Match[1] === "jpeg" ? "jpg" : base64Match[1];
@@ -107,7 +119,6 @@ serve(async (req) => {
             .from("story-assets")
             .getPublicUrl(filePath);
 
-          // Update scene with image URL
           const { error: updateError } = await supabase
             .from("story_scenes")
             .update({ image_url: urlData.publicUrl })
