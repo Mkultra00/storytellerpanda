@@ -31,14 +31,17 @@ const SPEED_OPTIONS = [0.75, 1, 1.25, 1.5];
 const StoryPlayback = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { title, scenes: rawScenes, synopsis, voice_id, child_name, autoPlay } = (location.state || {}) as {
+  const { title, scenes: rawScenes, synopsis, voice_id, child_name, autoPlay, playMode } = (location.state || {}) as {
     title?: string;
     scenes?: PlaybackScene[];
     synopsis?: string;
     voice_id?: string;
     child_name?: string;
     autoPlay?: boolean;
+    playMode?: "narration" | "slideshow";
   };
+
+  const isSlideshow = playMode === "slideshow";
 
   const scenes = rawScenes || [];
 
@@ -53,7 +56,7 @@ const StoryPlayback = () => {
   const [showControls, setShowControls] = useState(true);
   const [prevImage, setPrevImage] = useState<string | null>(null);
   const [crossfading, setCrossfading] = useState(false);
-  const [showCaptions, setShowCaptions] = useState(true);
+  const [showCaptions, setShowCaptions] = useState(isSlideshow);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const controlsTimer = useRef<ReturnType<typeof setTimeout>>();
@@ -107,9 +110,27 @@ const StoryPlayback = () => {
     }
   }, [currentScene, scenes]);
 
+  const goToScene = useCallback((idx: number) => {
+    if (idx < 0 || idx >= scenes.length) return;
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    setCurrentScene(idx);
+    setAudioProgress(0);
+    setAudioDuration(0);
+  }, [scenes.length]);
+
   const playScene = useCallback(
     (idx: number) => {
       if (idx < 0 || idx >= scenes.length) return;
+
+      // In slideshow mode, just navigate — no audio
+      if (isSlideshow) {
+        goToScene(idx);
+        setPlaybackState("playing");
+        return;
+      }
 
       // Stop current audio
       if (audioRef.current) {
@@ -133,7 +154,6 @@ const StoryPlayback = () => {
         };
 
         audio.onended = () => {
-          // Auto-advance to next scene
           if (idx + 1 < scenes.length) {
             playScene(idx + 1);
           } else {
@@ -144,7 +164,6 @@ const StoryPlayback = () => {
         audio.play().catch(console.error);
         setPlaybackState("playing");
       } else {
-        // No audio — auto-advance after estimated duration
         setPlaybackState("playing");
         const dur = (s.duration_seconds || 8) * 1000;
         const t = setTimeout(() => {
@@ -157,7 +176,7 @@ const StoryPlayback = () => {
         return () => clearTimeout(t);
       }
     },
-    [scenes, muted, volume, speed]
+    [scenes, muted, volume, speed, isSlideshow, goToScene]
   );
 
   // Auto-play on mount if requested
@@ -182,11 +201,17 @@ const StoryPlayback = () => {
 
   const handleSkipForward = () => {
     if (currentScene + 1 < scenes.length) {
-      playScene(currentScene + 1);
+      isSlideshow ? goToScene(currentScene + 1) : playScene(currentScene + 1);
+    } else if (isSlideshow) {
+      setPlaybackState("ended");
     }
   };
 
   const handleSkipBack = () => {
+    if (isSlideshow) {
+      if (currentScene > 0) goToScene(currentScene - 1);
+      return;
+    }
     // If more than 3s into scene, restart it; else go to previous
     if (audioRef.current && audioRef.current.currentTime > 3) {
       audioRef.current.currentTime = 0;
@@ -353,7 +378,8 @@ const StoryPlayback = () => {
           showControls ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
       >
-        {/* Progress bar */}
+        {/* Progress bar — narration only */}
+        {!isSlideshow && (
         <div className="px-6 pb-2">
           <div className="flex items-center gap-3 text-white/60 text-xs font-body">
             <span>{formatTime(audioProgress)}</span>
@@ -368,6 +394,7 @@ const StoryPlayback = () => {
             <span>{formatTime(audioDuration)}</span>
           </div>
         </div>
+        )}
 
         {/* Scene dots */}
         <div className="flex justify-center gap-1.5 pb-3">
@@ -388,7 +415,8 @@ const StoryPlayback = () => {
 
         {/* Main controls */}
         <div className="flex items-center justify-between px-6 pb-6">
-          {/* Volume */}
+          {/* Volume — narration only */}
+          {!isSlideshow ? (
           <div className="flex items-center gap-2 w-32">
             <Button
               variant="ghost"
@@ -407,6 +435,7 @@ const StoryPlayback = () => {
               className="w-20 [&_[role=slider]]:bg-white [&_[role=slider]]:border-0 [&_[role=slider]]:h-2.5 [&_[role=slider]]:w-2.5"
             />
           </div>
+          ) : <div className="w-32" />}
 
           {/* Transport */}
           <div className="flex items-center gap-3">
@@ -415,9 +444,11 @@ const StoryPlayback = () => {
               size="icon"
               onClick={(e) => { e.stopPropagation(); handleSkipBack(); }}
               className="text-white/80 hover:text-white hover:bg-white/10 h-10 w-10"
+              disabled={currentScene === 0}
             >
               <SkipBack className="h-5 w-5" />
             </Button>
+            {!isSlideshow && (
             <Button
               variant="ghost"
               size="icon"
@@ -430,17 +461,20 @@ const StoryPlayback = () => {
                 <Play className="h-7 w-7 ml-0.5" />
               )}
             </Button>
+            )}
             <Button
               variant="ghost"
               size="icon"
               onClick={(e) => { e.stopPropagation(); handleSkipForward(); }}
               className="text-white/80 hover:text-white hover:bg-white/10 h-10 w-10"
+              disabled={currentScene === scenes.length - 1}
             >
               <SkipForward className="h-5 w-5" />
             </Button>
           </div>
 
-          {/* Speed */}
+          {/* Speed — narration only */}
+          {!isSlideshow ? (
           <div className="relative w-32 flex justify-end">
             <Button
               variant="ghost"
@@ -467,6 +501,7 @@ const StoryPlayback = () => {
               </div>
             )}
           </div>
+          ) : <div className="w-32" />}
         </div>
       </div>
 
