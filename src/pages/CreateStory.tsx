@@ -209,25 +209,38 @@ const CreateStory = () => {
               Preview & Generate Story
             </Button>
           ) : (
-            <div className="flex gap-2">
-              <Input
-                ref={inputRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) =>
-                  e.key === "Enter" && !e.shiftKey && sendMessage()
-                }
-                placeholder="Type your answer..."
-                className="flex-1"
-                disabled={isLoading}
-              />
-              <Button
-                onClick={sendMessage}
-                disabled={!input.trim() || isLoading}
-                className="bg-accent text-accent-foreground hover:bg-accent/90"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <Input
+                  ref={inputRef}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) =>
+                    e.key === "Enter" && !e.shiftKey && sendMessage()
+                  }
+                  placeholder="Type your answer..."
+                  className="flex-1"
+                  disabled={isLoading}
+                />
+                <Button
+                  onClick={sendMessage}
+                  disabled={!input.trim() || isLoading}
+                  className="bg-accent text-accent-foreground hover:bg-accent/90"
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
+              {messages.length <= 1 && (
+                <Button
+                  variant="outline"
+                  onClick={handleSurpriseMe}
+                  disabled={isLoading}
+                  className="w-full gap-2 text-muted-foreground hover:text-foreground"
+                >
+                  <Shuffle className="h-4 w-4" />
+                  Just Surprise Me!
+                </Button>
+              )}
             </div>
           )}
         </div>
