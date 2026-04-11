@@ -104,6 +104,40 @@ const CreateStory = () => {
     }
   };
 
+  const handleSurpriseMe = () => {
+    const names = ["Luna", "Max", "Aria", "Leo", "Zara", "Kai", "Mia", "Finn", "Nova", "Theo"];
+    const ages = [3, 4, 5, 6, 7, 8];
+    const genders = ["girl", "boy"];
+    const themes = ["adventure", "fantasy", "space", "underwater", "dinosaurs", "fairy tale", "superhero", "pirate"];
+    const interests = [["animals", "painting"], ["dinosaurs", "space"], ["fairies", "flowers"], ["robots", "racing"], ["dragons", "castles"], ["music", "dancing"]];
+    const morals = ["bravery", "kindness", "teamwork", "honesty", "curiosity", "patience"];
+    const tones = ["warm", "adventurous", "playful", "calm"] as const;
+    const durations = [3, 5, 8];
+    const settings = ["enchanted forest", "magical kingdom", "outer space", "underwater city", "cloud village", "dinosaur island"];
+
+    const pick = <T,>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
+    const name = pick(names);
+    const gender = pick(genders);
+
+    const randomContext = {
+      child_name: name,
+      child_age: pick(ages),
+      child_gender: gender,
+      occasion: "just for fun",
+      interests: pick(interests),
+      theme: pick(themes),
+      moral_lesson: pick(morals),
+      duration_minutes: pick(durations),
+      setting: pick(settings),
+      tone: pick(tones),
+      characters: [name],
+    };
+
+    navigate("/story-preview", {
+      state: { context: randomContext, chatHistory: [] },
+    });
+  };
+
   const handleContinue = () => {
     if (storyContext) {
       const chatHistory = messages.map((m) => ({
