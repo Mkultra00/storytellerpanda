@@ -14,7 +14,216 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          child_age: number | null
+          child_name: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          child_age?: number | null
+          child_name?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          child_age?: number | null
+          child_name?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      story_contexts: {
+        Row: {
+          characters: string[] | null
+          child_age: number | null
+          child_name: string | null
+          created_at: string
+          duration_minutes: number | null
+          id: string
+          interests: string[] | null
+          moral_lesson: string | null
+          raw_chat: Json | null
+          setting: string | null
+          theme: string | null
+          tone: string | null
+          user_id: string
+        }
+        Insert: {
+          characters?: string[] | null
+          child_age?: number | null
+          child_name?: string | null
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          interests?: string[] | null
+          moral_lesson?: string | null
+          raw_chat?: Json | null
+          setting?: string | null
+          theme?: string | null
+          tone?: string | null
+          user_id: string
+        }
+        Update: {
+          characters?: string[] | null
+          child_age?: number | null
+          child_name?: string | null
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          interests?: string[] | null
+          moral_lesson?: string | null
+          raw_chat?: Json | null
+          setting?: string | null
+          theme?: string | null
+          tone?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      story_library: {
+        Row: {
+          created_at: string
+          id: string
+          is_favorite: boolean | null
+          last_played_at: string | null
+          play_count: number | null
+          script_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_favorite?: boolean | null
+          last_played_at?: string | null
+          play_count?: number | null
+          script_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_favorite?: boolean | null
+          last_played_at?: string | null
+          play_count?: number | null
+          script_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_library_script_id_fkey"
+            columns: ["script_id"]
+            isOneToOne: false
+            referencedRelation: "story_scripts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      story_scenes: {
+        Row: {
+          audio_url: string | null
+          created_at: string
+          duration_seconds: number | null
+          id: string
+          image_url: string | null
+          narration_text: string
+          scene_number: number
+          script_id: string
+          visual_prompt: string | null
+        }
+        Insert: {
+          audio_url?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          image_url?: string | null
+          narration_text: string
+          scene_number: number
+          script_id: string
+          visual_prompt?: string | null
+        }
+        Update: {
+          audio_url?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          image_url?: string | null
+          narration_text?: string
+          scene_number?: number
+          script_id?: string
+          visual_prompt?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_scenes_script_id_fkey"
+            columns: ["script_id"]
+            isOneToOne: false
+            referencedRelation: "story_scripts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      story_scripts: {
+        Row: {
+          context_id: string
+          created_at: string
+          id: string
+          scene_count: number
+          status: string
+          synopsis: string | null
+          title: string
+          updated_at: string
+          user_id: string
+          voice_id: string | null
+        }
+        Insert: {
+          context_id: string
+          created_at?: string
+          id?: string
+          scene_count?: number
+          status?: string
+          synopsis?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+          voice_id?: string | null
+        }
+        Update: {
+          context_id?: string
+          created_at?: string
+          id?: string
+          scene_count?: number
+          status?: string
+          synopsis?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          voice_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_scripts_context_id_fkey"
+            columns: ["context_id"]
+            isOneToOne: false
+            referencedRelation: "story_contexts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
