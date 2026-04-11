@@ -33,7 +33,7 @@ You are excited to present this story! Be warm, enthusiastic, and speak as if ta
         default_replica_id: "r79e1c033f", // Tavus stock replica
         layers: {
           llm: {
-            model: "tavus-llama",
+            model: "tavus-gemini-2.5-flash",
           },
         },
       }),
