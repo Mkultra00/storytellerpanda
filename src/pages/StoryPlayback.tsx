@@ -160,6 +160,14 @@ const StoryPlayback = () => {
     [scenes, muted, volume, speed]
   );
 
+  // Auto-play on mount if requested
+  useEffect(() => {
+    if (autoPlay && !hasAutoPlayed.current && scenes.length > 0) {
+      hasAutoPlayed.current = true;
+      playScene(0);
+    }
+  }, [autoPlay, scenes.length, playScene]);
+
   const handlePlayPause = () => {
     if (playbackState === "idle" || playbackState === "ended") {
       playScene(playbackState === "ended" ? 0 : currentScene);
