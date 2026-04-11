@@ -179,6 +179,7 @@ export type Database = {
       }
       story_scripts: {
         Row: {
+          character_image_url: string | null
           context_id: string
           created_at: string
           id: string
@@ -191,6 +192,7 @@ export type Database = {
           voice_id: string | null
         }
         Insert: {
+          character_image_url?: string | null
           context_id: string
           created_at?: string
           id?: string
@@ -203,6 +205,7 @@ export type Database = {
           voice_id?: string | null
         }
         Update: {
+          character_image_url?: string | null
           context_id?: string
           created_at?: string
           id?: string
