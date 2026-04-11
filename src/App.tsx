@@ -6,6 +6,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Index from "./pages/Index.tsx";
 import Auth from "./pages/Auth.tsx";
 import CreateStory from "./pages/CreateStory.tsx";
+import StoryPreview from "./pages/StoryPreview.tsx";
+import StoryResult from "./pages/StoryResult.tsx";
 import Library from "./pages/Library.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
@@ -21,6 +23,8 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/create" element={<CreateStory />} />
+          <Route path="/story-preview" element={<StoryPreview />} />
+          <Route path="/story-result" element={<StoryResult />} />
           <Route path="/library" element={<Library />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
