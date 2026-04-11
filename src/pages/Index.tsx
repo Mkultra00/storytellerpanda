@@ -93,17 +93,15 @@ const Index = () => {
               <Shuffle className="h-5 w-5 mr-2" />
               Surprise Me!
             </Button>
-            {user && (
-              <Button
-                size="lg"
-                variant="outline"
-                onClick={() => navigate("/library")}
-                className="font-heading font-semibold text-lg px-8 py-6 rounded-lg"
-              >
-                <BookOpen className="h-5 w-5 mr-2" />
-                My Stories
-              </Button>
-            )}
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={() => navigate("/library")}
+              className="font-heading font-semibold text-lg px-8 py-6 rounded-lg"
+            >
+              <BookOpen className="h-5 w-5 mr-2" />
+              My Stories
+            </Button>
           </div>
         </div>
 
