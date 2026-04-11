@@ -378,7 +378,8 @@ const StoryPlayback = () => {
           showControls ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
       >
-        {/* Progress bar */}
+        {/* Progress bar — narration only */}
+        {!isSlideshow && (
         <div className="px-6 pb-2">
           <div className="flex items-center gap-3 text-white/60 text-xs font-body">
             <span>{formatTime(audioProgress)}</span>
@@ -393,6 +394,7 @@ const StoryPlayback = () => {
             <span>{formatTime(audioDuration)}</span>
           </div>
         </div>
+        )}
 
         {/* Scene dots */}
         <div className="flex justify-center gap-1.5 pb-3">
@@ -413,7 +415,8 @@ const StoryPlayback = () => {
 
         {/* Main controls */}
         <div className="flex items-center justify-between px-6 pb-6">
-          {/* Volume */}
+          {/* Volume — narration only */}
+          {!isSlideshow ? (
           <div className="flex items-center gap-2 w-32">
             <Button
               variant="ghost"
@@ -432,6 +435,7 @@ const StoryPlayback = () => {
               className="w-20 [&_[role=slider]]:bg-white [&_[role=slider]]:border-0 [&_[role=slider]]:h-2.5 [&_[role=slider]]:w-2.5"
             />
           </div>
+          ) : <div className="w-32" />}
 
           {/* Transport */}
           <div className="flex items-center gap-3">
@@ -465,7 +469,8 @@ const StoryPlayback = () => {
             </Button>
           </div>
 
-          {/* Speed */}
+          {/* Speed — narration only */}
+          {!isSlideshow ? (
           <div className="relative w-32 flex justify-end">
             <Button
               variant="ghost"
@@ -492,6 +497,7 @@ const StoryPlayback = () => {
               </div>
             )}
           </div>
+          ) : <div className="w-32" />}
         </div>
       </div>
 
