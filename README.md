@@ -38,6 +38,15 @@ Xiaobi is a personalized children's story generator that creates unique bedtime 
 
 Warm, child-friendly aesthetic with navy (#1B2D4F), soft gold (#F4C753), cloud white (#FAFBFC), and coral (#FF8A80). Nunito for headings, Inter for body text, 16px border radius throughout.
 
+## Team
+
+| Name | Role |
+|---|---|
+| **Frank Yu** | BVibe Coder & Lead |
+| **Forrest Pan** | Concept & Feedback |
+| **Fred Yan** | Ideation |
+| **Jin Thakendur** | QA |
+
 ## License
 
 Private — All rights reserved.
