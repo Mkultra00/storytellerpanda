@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Video, VideoOff, Loader2 } from "lucide-react";
 
@@ -10,6 +10,26 @@ type TavusNarratorProps = {
   childName?: string;
 };
 
+const requestMediaPermissions = async (): Promise<{ granted: boolean; error?: string }> => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+    // Stop all tracks immediately — we just needed the permission grant
+    stream.getTracks().forEach((t) => t.stop());
+    return { granted: true };
+  } catch (err: any) {
+    if (err.name === "NotAllowedError") {
+      return { granted: false, error: "Please allow camera & microphone access in your browser settings, then try again." };
+    }
+    if (err.name === "NotFoundError") {
+      return { granted: false, error: "No camera or microphone found on this device." };
+    }
+    if (err.name === "NotReadableError") {
+      return { granted: false, error: "Camera or microphone is in use by another app." };
+    }
+    return { granted: false, error: "Could not access camera/microphone." };
+  }
+};
+
 const TavusNarrator = ({ storyTitle, storySynopsis, childName }: TavusNarratorProps) => {
   const [conversationUrl, setConversationUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -19,6 +39,14 @@ const TavusNarrator = ({ storyTitle, storySynopsis, childName }: TavusNarratorPr
   const startNarrator = async () => {
     setIsLoading(true);
     setError(null);
+
+    // Pre-request camera + mic so the browser prompt appears before Tavus loads
+    const media = await requestMediaPermissions();
+    if (!media.granted) {
+      setError(media.error || "Camera/microphone access required.");
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const resp = await fetch(TAVUS_URL, {
@@ -65,7 +93,7 @@ const TavusNarrator = ({ storyTitle, storySynopsis, childName }: TavusNarratorPr
           )}
         </Button>
         {error && (
-          <p className="text-xs text-destructive mt-1 bg-background/90 rounded px-2 py-1">
+          <p className="text-xs text-destructive mt-1 bg-background/90 rounded px-2 py-1 max-w-[260px]">
             {error}
           </p>
         )}
@@ -87,7 +115,7 @@ const TavusNarrator = ({ storyTitle, storySynopsis, childName }: TavusNarratorPr
         <div className="w-72 h-72 rounded-2xl overflow-hidden shadow-2xl border-2 border-accent/30 bg-black">
           <iframe
             src={conversationUrl}
-            allow="camera; microphone; autoplay"
+            allow="camera *; microphone *; autoplay *; display-capture *"
             className="w-full h-full"
             style={{ border: "none" }}
           />
