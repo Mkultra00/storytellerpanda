@@ -14,7 +14,7 @@ serve(async (req) => {
   }
 
   try {
-    const { visual_prompt, scene_id, script_id, character_image_url } = await req.json();
+    const { visual_prompt, scene_id, script_id, character_image_url, previous_image_url } = await req.json();
 
     if (!visual_prompt) {
       return new Response(
@@ -30,20 +30,36 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    console.log(`Generating image for scene ${scene_id}, prompt: ${visual_prompt.slice(0, 80)}..., has character ref: ${!!character_image_url}`);
+    console.log(`Generating image for scene ${scene_id}, prompt: ${visual_prompt.slice(0, 80)}..., character ref: ${!!character_image_url}, previous ref: ${!!previous_image_url}`);
 
-    // Build the message content — multimodal if we have a character reference image
-    const textPrompt = character_image_url
-      ? `Generate a beautiful children's book illustration: ${visual_prompt}. Style: warm watercolor illustration with soft edges, vibrant but gentle colors, suitable for a children's storybook. The image should be whimsical and enchanting. Do not include any text in the image. IMPORTANT: The main character in this scene should look like the person in the reference photo I'm providing — match their appearance, hair, skin tone, and features, but render them in the illustrated children's book style.`
-      : `Generate a beautiful children's book illustration: ${visual_prompt}. Style: warm watercolor illustration with soft edges, vibrant but gentle colors, suitable for a children's storybook. The image should be whimsical and enchanting. Do not include any text in the image.`;
+    // Build instruction text. Reference images are explained explicitly so the
+    // model knows what each one is for (character likeness vs. style continuity).
+    const refNotes: string[] = [];
+    if (character_image_url) {
+      refNotes.push(
+        "REFERENCE IMAGE 1 is a photo of the real-life main character. Match their face, hair, skin tone, and features, but render them in the illustration style."
+      );
+    }
+    if (previous_image_url) {
+      refNotes.push(
+        `REFERENCE IMAGE ${character_image_url ? 2 : 1} is the previous scene's illustration. Keep ALL recurring characters visually identical to how they appear there — same species, body shape, hair/fur color, outfit, colors, and art style. Only change pose, expression, and setting as the new scene requires.`
+      );
+    }
+
+    const textPrompt = `Generate a beautiful children's book illustration: ${visual_prompt}.
+
+Style: warm watercolor illustration with soft edges, vibrant but gentle colors, suitable for a children's storybook. Whimsical and enchanting. Do not include any text in the image.
+
+${refNotes.join("\n\n")}
+
+CRITICAL: Characters described in the prompt or shown in reference images must look CONSISTENT across every scene of this story — same design, colors, and proportions every time.`.trim();
 
     const messageContent: any[] = [{ type: "text", text: textPrompt }];
-
     if (character_image_url) {
-      messageContent.push({
-        type: "image_url",
-        image_url: { url: character_image_url },
-      });
+      messageContent.push({ type: "image_url", image_url: { url: character_image_url } });
+    }
+    if (previous_image_url) {
+      messageContent.push({ type: "image_url", image_url: { url: previous_image_url } });
     }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {

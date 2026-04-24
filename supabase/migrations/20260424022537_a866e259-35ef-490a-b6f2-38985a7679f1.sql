@@ -1,0 +1,1 @@
+ALTER TABLE public.story_scripts ADD COLUMN IF NOT EXISTS character_bible JSONB;
