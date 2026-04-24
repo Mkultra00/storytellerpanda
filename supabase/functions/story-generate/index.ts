@@ -241,6 +241,7 @@ voice_style must be one of: warm_female, warm_male, playful_female, playful_male
         scene_count: story.scenes.length,
         status: "generated",
         character_image_url: context.character_image_url || null,
+        character_bible: story.character_bible || null,
       })
       .select("id")
       .single();
@@ -289,6 +290,7 @@ voice_style must be one of: warm_female, warm_male, playful_female, playful_male
         voice_id: voiceId,
         scene_count: story.scenes.length,
         scenes: story.scenes,
+        character_bible: story.character_bible || null,
         character_image_url: context.character_image_url || null,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
