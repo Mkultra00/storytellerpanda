@@ -95,11 +95,19 @@ Return this EXACT JSON structure (no other text):
   "title": "Story title",
   "synopsis": "A brief 1-2 sentence summary",
   "voice_style": "warm_female",
+  "character_bible": [
+    {
+      "name": "Character name",
+      "role": "protagonist | friend | mentor | creature | family",
+      "visual_description": "Detailed physical description: species, age, build, hair color and style, eye color, skin/fur color, distinctive features, signature outfit (colors + items), accessories. Be SPECIFIC and CONSISTENT — these exact details must be reusable verbatim in every scene illustration so the character looks identical every time."
+    }
+  ],
   "scenes": [
     {
       "scene_number": 1,
       "narration_text": "The narration text for this scene...",
-      "visual_prompt": "A detailed illustration prompt: [style: warm children's book watercolor illustration] [scene description with specific details, colors, lighting, composition]",
+      "visual_prompt": "A detailed illustration prompt: [style: warm children's book watercolor illustration] [scene description with specific details, colors, lighting, composition]. IMPORTANT: When a character from the character_bible appears, refer to them by name AND restate their key visual traits exactly as in the bible so they look identical across scenes.",
+      "characters_present": ["Names of characters from character_bible appearing in this scene"],
       "duration_seconds": 20
     }
   ]
