@@ -201,8 +201,10 @@ const CreateStory = () => {
         role: m.role,
         content: m.content,
       }));
+      const payload = { context: storyContext, chatHistory, characterImageUrl, unchained };
+      try { sessionStorage.setItem("storyPreviewState", JSON.stringify(payload)); } catch {}
       navigate("/story-preview", {
-        state: { context: storyContext, chatHistory, characterImageUrl, unchained },
+        state: payload,
       });
     }
   };
