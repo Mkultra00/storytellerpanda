@@ -147,9 +147,9 @@ const CreateStory = () => {
       characters: [name],
     };
 
-    navigate("/story-preview", {
-      state: { context: randomContext, chatHistory: [], unchained },
-    });
+    const payload = { context: randomContext, chatHistory: [], unchained };
+    try { sessionStorage.setItem("storyPreviewState", JSON.stringify(payload)); } catch {}
+    navigate("/story-preview", { state: payload });
   };
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -201,8 +201,10 @@ const CreateStory = () => {
         role: m.role,
         content: m.content,
       }));
+      const payload = { context: storyContext, chatHistory, characterImageUrl, unchained };
+      try { sessionStorage.setItem("storyPreviewState", JSON.stringify(payload)); } catch {}
       navigate("/story-preview", {
-        state: { context: storyContext, chatHistory, characterImageUrl, unchained },
+        state: payload,
       });
     }
   };

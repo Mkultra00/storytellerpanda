@@ -12,10 +12,18 @@ const StoryPreview = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const context = location.state?.context;
-  const chatHistory = location.state?.chatHistory;
-  const characterImageUrl = location.state?.characterImageUrl || null;
-  const unchained = location.state?.unchained === true;
+  // Fall back to sessionStorage so a hard reload / iframe quirk doesn't wipe state.
+  let state: any = location.state;
+  if (!state?.context) {
+    try {
+      const raw = sessionStorage.getItem("storyPreviewState");
+      if (raw) state = JSON.parse(raw);
+    } catch {}
+  }
+  const context = state?.context;
+  const chatHistory = state?.chatHistory;
+  const characterImageUrl = state?.characterImageUrl || null;
+  const unchained = state?.unchained === true;
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
